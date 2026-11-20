@@ -1637,11 +1637,14 @@ async function fetchMissingRefs(ids){
   S.img.tried = S.img.tried || new Set(); S.img.extra = S.img.extra || [];
   const todo = ids.filter(id => !S.img.tried.has(norm(id))).slice(0, 40);
   if (!todo.length) return false;
-  const srcs = Object.keys(S.sources).filter(s => S.sources[s].filters.has('reference_number'));
-  if (S.img.lookup !== 'off' && !srcs.includes('all')) srcs.push('lookup');
+  // the all-items question is always searched by reference (the server adds the filter if the question has none)
+  const srcs = Object.keys(S.sources).filter(s => s !== 'all' && S.sources[s].filters.has('reference_number'));
+  if (S.img.lookup !== 'off') srcs.push('lookup');
   todo.forEach(id => S.img.tried.add(norm(id)));
   const have = new Set(imgPool().map(acKey));
-  const jobs = todo.flatMap(id => srcs.map(s => api({ reference_number: id }, s).then(j => toObjects(j, s))));
+  const jobs = srcs.flatMap(s => s === 'lookup'
+    ? [api({ reference_numbers: todo }, s).then(j => toObjects(j, s))]          // one request for all missing refs
+    : todo.map(id => api({ reference_number: id }, s).then(j => toObjects(j, s))));
   const res = await Promise.allSettled(jobs);
   let added = 0;
   res.forEach(r => {
@@ -1687,7 +1690,7 @@ function renderImageTab(){
       ${limitNote}
       ${S.img.view === 'list' && res.length ? `<label class="imiss"><input type="checkbox" id="imgMiss" ${S.img.missingOnly ? 'checked' : ''}> No image only</label><button class="btn sm" id="imgCsv">Export CSV</button>` : ''}
     </div>
-    ${res.length ? `<details class="idiag"><summary>How refs were matched</summary><div>Reference column${refCols().length > 1 ? 's' : ''} searched: <b>${esc(refCols().join(', ') || 'none found')}</b> · rows searched: <b>${imgPool().length.toLocaleString()}</b> (${Object.entries(S.sources).map(([s, v]) => `${SOURCE_NAME[s]} ${v.card}: ${v.count.toLocaleString()}`).join(' · ')}${S.img.extra && S.img.extra.length ? ` · ${S.img.extra.length} found by Metabase look-up` : ''})</div>
+    ${res.length ? `<details class="idiag"><summary>How refs were matched</summary><div>Reference column${refCols().length > 1 ? 's' : ''} searched: <b>${esc(refCols().join(', ') || 'none found')}</b> · rows searched: <b>${imgPool().length.toLocaleString()}</b> (${Object.entries(S.sources).map(([s, v]) => `${SOURCE_NAME[s]} ${v.card}: ${v.count.toLocaleString()}${v.note ? ` <span class="part">— ${esc(v.note)}</span>` : ''}`).join(' · ')}${S.img.extra && S.img.extra.length ? ` · ${S.img.extra.length} found by Metabase look-up` : ''})</div>
       <table class="idiagt"><tr><th>Pasted</th><th>Matched</th><th>How</th><th>Watches</th></tr>${res.map(x => `<tr><td>${esc(x.id)}</td><td>${x.rows.length ? esc(String(x.rows[0][colFor('ref')] ?? '')) : '—'}</td><td>${x.rows.length ? esc(x.type === 'Ref' ? x.how : 'by ' + x.type) : '<span class="no">not found</span>'}</td><td>${x.rows.length}</td></tr>`).join('')}</table></details>` : ''}
     <div id="imgOut">${!res.length ? '<div class="msg">Paste references above, then Look up. Checks every dial variant of each reference across all items (question 31879), warehouse and retrieved.</div>' : S.img.view === 'summary' ? imageSummary(res) : S.img.view === 'list' ? imageList(res) : imageFull(res)}</div>
   </section>`;
@@ -1848,7 +1851,8 @@ async function loadAll(){
     if (r.status === 'fulfilled'){
       const j = r.value;
       const rows = toObjects(j, s);
-      S.sources[s] = { card:j.card, name:j.name, filters:new Set(j.filters || []), count:rows.length };
+      S.sources[s] = { card:j.card, name:j.name, filters:new Set(j.filters || []), count:rows.length, via:j.via, note:j.note };
+      if (j.note && rows.length >= 1000 && rows.length % 1000 === 0) notes.push(`${SOURCE_NAME[s]} (question ${j.card}): ${j.note}.`);
       S.all.push(...rows);
       if (j.truncated) notes.push(`${SOURCE_NAME[s]} returned exactly 2,000 rows, so totals may be cut off. Check question ${j.card} for a LIMIT.`);
     } else if (s === 'warehouse' && /not set yet/.test(r.reason.message)){ S.noWarehouseQ = true; notes.push('Warehouse question not set yet — the Warehouse tab shows on-hand watches from All for now.'); }

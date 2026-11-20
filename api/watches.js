@@ -29,7 +29,7 @@ async function cardMeta(host, key, card) {
     const j = await r.json();
     const dq = j.dataset_query || {};
     const tags = (dq.native && dq.native['template-tags']) || (dq.stages && dq.stages[0] && dq.stages[0]['template-tags']) || {};
-    return (meta[card] = { name: j.name || `Question ${card}`, tags, dq, at: Date.now() });
+    return (meta[card] = { name: j.name || `Question ${card}`, tags, dq, cols: j.result_metadata || [], at: Date.now() });
   } catch {
     return { name: `Question ${card}`, tags: {}, at: 0 };
   }
@@ -82,18 +82,25 @@ export default async function handler(req, res) {
   if (!card) return res.status(400).json({ error: 'Warehouse question not set yet (WAREHOUSE_CARD_ID)', code: 'no_card', source });
 
   const params = (body0 && body0.params) || {};
+  // several references in one go: ["16618", "126610LN", …]
+  const refList = Array.isArray(params.reference_numbers) ? params.reference_numbers.map(v => String(v).trim()).filter(Boolean).slice(0, 200) : null;
+  if (refList) { delete params.reference_numbers; if (refList.length === 1) params.reference_number = refList[0]; }
 
   const { name, tags } = await cardMeta(host, key, card);
   const tagMap = mapTags(tags);
-  if (source === 'lookup' && !Object.keys(params).some(k => tagMap[k]))
-    return res.status(400).json({ error: `Question ${card} has no Reference filter to search by`, code: 'no_filter', card, source });
+
+  // build Metabase parameters from the question's own filter definitions (type + widget type), so they aren't rejected
   const parameters = Object.entries(params)
     .filter(([k, v]) => tagMap[k] && v != null && String(v).trim() !== '')
     .map(([k, v]) => {
       const t = tagMap[k], def = tags[t] || {}, value = String(v).trim();
-      return def.type === 'dimension'
-        ? { type: 'string/=', target: ['dimension', ['template-tag', t]], value: [value] }
-        : { type: def.type === 'number' ? 'number/=' : 'category', target: ['variable', ['template-tag', t]], value: def.type === 'number' && !isNaN(+value) ? +value : value };
+      const widget = def['widget-type'] || def.widget_type;
+      const asNum = /number/.test(widget || def.type || '') && !isNaN(+value);
+      if (def.type === 'dimension') {
+        const type = widget && widget !== 'none' ? widget : (asNum ? 'number/=' : 'string/=');
+        return { type, target: ['dimension', ['template-tag', t]], value: [asNum ? +value : value] };
+      }
+      return { type: def.type === 'number' ? 'number/=' : 'category', target: ['variable', ['template-tag', t]], value: def.type === 'number' && !isNaN(+value) ? +value : value };
     });
 
   // gzip the JSON: thousands of watches stay well under Vercel's response-size limit
@@ -112,33 +119,74 @@ export default async function handler(req, res) {
   };
   const fromObjects = j => { const keys = j.length ? Object.keys(j[0]) : []; return [keys.map(normKey), j.map(o => keys.map(k => o[k]))]; };
 
-  // 0) Every row: run the question's own query without its row LIMIT (e.g. "LIMIT 5000"), as a full export
+  // 0) Every row: run the question's own query without its row cap (SQL "LIMIT 5000" / "FETCH FIRST n ROWS" /
+  //    "TOP n", or a GUI question's row limit), as a full export. For GUI questions a Reference search is added as
+  //    a real filter on the Reference column, so lookups work even without a {{reference}} variable.
   const meta0 = meta[card];
   const dq = meta0 && meta0.dq;
+  let why = '';
   if (dq && dq.database) {
     try {
       const q = JSON.parse(JSON.stringify(dq));
       let changed = false;
+      const dropLimit = obj => { if (obj && typeof obj === 'object') { if (obj.limit != null) { delete obj.limit; changed = true; } if (obj['source-query']) dropLimit(obj['source-query']); } };
       if (q.native && typeof q.native.query === 'string') {
-        const s = q.native.query.replace(/;\s*$/, '');
-        const t = s.replace(/\s+limit\s+\d+(\s+offset\s+\d+)?\s*$/i, '');
+        const s = q.native.query;
+        const t = s
+          .replace(/\blimit\s+\d{3,}(\s+offset\s+\d+)?/gi, ' ')                    // row caps (100+)
+          .replace(/\bfetch\s+(first|next)\s+\d{3,}\s+rows?\s+only\b/gi, ' ')
+          .replace(/\bselect\s+top\s+\d{3,}\b/gi, 'select ')
+          .replace(/;\s*$/, '');
         if (t !== s) { q.native.query = t; changed = true; }
       }
-      if (q.query && q.query.limit != null) { delete q.query.limit; changed = true; }
-      if (Array.isArray(q.stages)) q.stages.forEach(st => { if (st.limit != null) { delete st.limit; changed = true; } });
-      if (changed) {
+      dropLimit(q.query);
+      if (Array.isArray(q.stages)) q.stages.forEach(dropLimit);
+      // GUI question + reference search → add the filter to the query itself
+      let refFilter = false;
+      const wanted = refList || (params.reference_number ? [String(params.reference_number).trim()] : null);
+      if (q.query && wanted && (refList ? refList.length > 1 || !tagMap.reference_number : !tagMap.reference_number)) {
+        const col = (meta0.cols || []).find(c => /^(reference|reference_number|ref|ref_number|reference_no)$/i.test(String(c.name || '').replace(/\W+/g, '_')) || /^reference/i.test(c.display_name || ''));
+        if (col && col.field_ref) {
+          const cond = ['=', col.field_ref, ...wanted];
+          q.query.filter = q.query.filter ? ['and', q.query.filter, cond] : cond;
+          changed = true; refFilter = true;
+        }
+      }
+      if (changed || wanted) {
         q.parameters = parameters;
         const r = await fetch(`${host}/api/dataset/json`, {
           method: 'POST',
           headers: { 'x-api-key': key, 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ query: JSON.stringify(q), format_rows: 'false' })
         });
-        if (r.ok) {
-          const j = await r.json();
-          if (Array.isArray(j)) { const [cols, rows] = fromObjects(j); return send(cols, rows, 'export-all'); }
+        let text = await r.text();
+        let j = null; try { j = JSON.parse(text); } catch {}
+        let localFilter = false;
+        // the question rejected our filter value: run it unfiltered and filter the references here instead
+        if (!(r.ok && Array.isArray(j)) && wanted && parameters.length) {
+          q.parameters = [];
+          const r2 = await fetch(`${host}/api/dataset/json`, {
+            method: 'POST',
+            headers: { 'x-api-key': key, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ query: JSON.stringify(q), format_rows: 'false' })
+          });
+          text = await r2.text(); try { j = JSON.parse(text); } catch { j = null; }
+          if (r2.ok && Array.isArray(j)) localFilter = true;
         }
-      }
-    } catch { /* fall through to the question as saved */ }
+        if (Array.isArray(j)) {
+          let [cols, rows] = fromObjects(j);
+          // native question with no reference variable: filter the full result here instead
+          if (wanted && !refFilter && (localFilter || (refList ? refList.length > 1 || !tagMap.reference_number : !tagMap.reference_number))) {
+            const nz = v => String(v ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const want = new Set(wanted.map(nz));
+            const idx = cols.map((c, i) => /^(REFERENCE|REFERENCE_NUMBER|REF|REF_NUMBER|REFERENCE_NO)$/.test(c) ? i : -1).filter(i => i >= 0);
+            rows = rows.filter(row => idx.some(i => want.has(nz(row[i]))));
+          }
+          return send(cols, rows, 'export-all');
+        }
+        why = `full export not allowed (${r.status}${j && j.error ? ': ' + String(j.error).slice(0, 120) : ''}) — showing the question as saved`;
+      } else why = 'no row limit found in the question';
+    } catch (e) { why = `full export failed: ${e.message}`; }
   }
 
   // 1) Full export of the saved question (no 2,000 cap, but keeps any LIMIT written into the question)
@@ -150,7 +198,7 @@ export default async function handler(req, res) {
     });
     if (r.ok) {
       const j = await r.json();
-      if (Array.isArray(j)) { const [cols, rows] = fromObjects(j); return send(cols, rows, 'export'); }
+      if (Array.isArray(j)) { const [cols, rows] = fromObjects(j); return send(cols, rows, 'export', why); }
       if (j && j.error) throw new Error(j.error);
     }
   } catch (e) {
@@ -166,7 +214,7 @@ export default async function handler(req, res) {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || j.error || !j.data) return res.status(502).json({ error: String(j.error || j.message || `Metabase returned ${r.status}`), card, source });
-    return send(j.data.cols.map(c => normKey(c.name || c.display_name)), j.data.rows, 'query');
+    return send(j.data.cols.map(c => normKey(c.name || c.display_name)), j.data.rows, 'query', why);
   } catch (e) {
     return res.status(502).json({ error: `Could not reach Metabase: ${e.message}`, card, source });
   }
