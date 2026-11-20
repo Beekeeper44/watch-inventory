@@ -23,6 +23,12 @@ Neon stores only those two columns (table `watch_group_fills`) and the list of v
 
 Setup: Vercel → Storage → connect a Neon database to the project (this adds `DATABASE_URL`), then redeploy.
 
+## Sign in
+Everyone signs in with their **email + password** (sign-in page shows before any data). Default password = first name + 123, lower case (Alan Bailey → `alan123`; `Alan123` also works). Sessions last 14 days (secure HttpOnly cookie). Every API route checks the session; data and edits are refused without one, and turning someone's access off locks them out immediately.
+- Admins: add users (email, optional name, optional password), reset passwords, change roles and access.
+- Anyone: **Change my password** in Users.
+- Vercel: no new variables needed. Optional `SESSION_SECRET` (any long random string) — otherwise one is derived from your existing secrets.
+
 ## Users
 **Members** (added once each on first run): Beatriz Garay (bgaray@), Brock Kounalis (bkounalis@), Nick Hartley (nhartley@), David Brockway (dbrockway@), Michelle Laddon (mladdon@), Kye Labit (klabit@) — all @arenaclub.com. More can be added in the app by the admin. Admins turn anyone's access **On/Off** in Users; a user whose access is off can't be picked and their edits are refused by the server. No extra Vercel settings are needed — the new columns (`role`, `active`) and table (`watch_meta`) are created automatically.
 **Admin:** Alan Bailey (alan@arenaclub.com) is created as admin automatically. Only admins can add or remove users and make others admin (there's always at least one admin). Set `ADMIN_EMAILS` in Vercel to change the default, e.g. `alan@arenaclub.com:Alan Bailey,karl@arenaclub.com:Karl Calma`.

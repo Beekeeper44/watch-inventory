@@ -186,7 +186,44 @@ table.gtable .share{height:8px}
 .uacc:hover{border-color:var(--green);box-shadow:0 0 12px var(--glow)}
 .urole{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;font:inherit;font-size:12px;font-weight:700;padding:0 10px;cursor:pointer;white-space:nowrap}
 .urole:hover{border-color:var(--green);color:var(--green);box-shadow:0 0 12px var(--glow)}
-.modal.umodal .sheet{width:min(720px,100%)}
+.modal.umodal .sheet{width:min(1000px,100%);padding:22px 24px}
+.login{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 50% 20%,var(--panel2),var(--bg) 70%);z-index:40}
+.login[hidden]{display:none}
+.lcard{width:min(420px,100%);background:var(--panel);border:1px solid var(--green-dim);border-radius:16px;padding:28px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 40px rgba(57,255,20,.08)}
+.lbrand{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.lbrand h1{margin:0;font-size:21px}
+.lbrand h1 span{color:var(--green)}
+.lsub{margin:0;color:var(--muted);font-size:13.5px}
+.lcard label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.lcard input{background:var(--input);border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:12px 13px;font:inherit;font-size:15px}
+.lcard input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.lpw{display:flex;gap:6px}
+.lpw input{flex:1;min-width:0}
+.lpw button{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:9px;font:inherit;font-size:12px;font-weight:700;padding:0 12px;cursor:pointer}
+.lerr{color:var(--red);font-size:13px;min-height:18px}
+.lbtn{padding:13px;font-size:15px}
+.lhelp{margin:0;color:var(--faint);font-size:12px}
+.lhelp b{color:var(--muted)}
+#app[hidden]{display:none}
+.uadd3{display:grid;grid-template-columns:1.4fr 1fr 1.2fr auto;gap:8px;margin-top:6px}
+.uadd3 input,.upwbox input{background:var(--input);border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:11px 12px;font:inherit;font-size:14px;min-width:0}
+.uadd3 input:focus,.upwbox input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.upwbox{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:0 0 10px}
+.upwbox[hidden]{display:none}
+.unote{margin-top:8px;padding:9px 12px;border:1px solid var(--green-dim);border-radius:9px;background:rgba(57,255,20,.06);font-size:13px}
+.unote b{color:var(--green)}
+.utable.big .uth,.utable.big .utr{grid-template-columns:minmax(0,1fr) 110px 96px 90px 40px;gap:12px;padding:0 14px}
+.utable.big .utr{min-height:62px}
+.utable.big .uth{font-size:12px;padding-top:10px;padding-bottom:10px}
+.utable.big .uav{flex-basis:38px;width:38px;height:38px;font-size:13px}
+.utable.big .unm b{font-size:15.5px}
+.utable.big .unm small{font-size:13px}
+.utable.big .rolepill{font-size:12.5px;padding:4px 12px}
+.utable.big .usw{font-size:13px}
+.uwho{cursor:default}
+.ureset{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;font:inherit;font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer}
+.ureset:hover{border-color:var(--green);color:var(--green);box-shadow:0 0 12px var(--glow)}
+@media (max-width:760px){ .uadd3{grid-template-columns:1fr 1fr} .utable.big .uth{display:none} .utable.big .utr{grid-template-columns:minmax(0,1fr) auto auto auto 30px;gap:8px} .upwbox{grid-template-columns:1fr} }
 .uhead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .uhead h3{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}
 .uhead h3 b{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:1px 8px}
@@ -561,7 +598,18 @@ th:hover{color:var(--green)}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="login" class="login" hidden>
+  <form class="lcard" id="lform" autocomplete="on">
+    <div class="lbrand"><img class="aclogo" src="data:image/png;base64,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" alt="Arena Club"><h1>Watch <span>Inventory</span></h1></div>
+    <p class="lsub">Sign in with your Arena Club email.</p>
+    <label>Email<input id="lEmail" type="email" autocomplete="username" placeholder="name@arenaclub.com" required></label>
+    <label>Password<span class="lpw"><input id="lPass" type="password" autocomplete="current-password" placeholder="Password" required><button type="button" id="lShow" aria-label="Show password">Show</button></span></label>
+    <div class="lerr" id="lErr" role="alert"></div>
+    <button class="btn go lbtn" id="lBtn">Sign in</button>
+    <p class="lhelp">First time? Your password is your first name + 123 (e.g. <b>alan123</b>). Ask an admin if it doesn’t work.</p>
+  </form>
+</div>
+<div class="wrap" id="app" hidden>
   <header class="top">
     <div class="logo"><img class="aclogo" src="data:image/png;base64,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" alt="Arena Club"><h1>Watch <span>Inventory</span></h1></div>
     <nav class="tiles" role="tablist" aria-label="Which watches" id="srcSeg">
@@ -573,6 +621,7 @@ th:hover{color:var(--green)}
     <nav class="pills" aria-label="Tools">
       <button type="button" id="reload" title="Reload all watches from Metabase">↻ Refresh</button>
       <button type="button" id="hdrUsers">Users</button>
+      <button type="button" id="hdrOut">Sign out</button>
       <button type="button" id="themeBtn" class="themebtn" aria-label="Switch light or dark mode"></button>
     </nav>
   </header>
@@ -1078,6 +1127,7 @@ async function demoApi(params, source){
 async function api(params, source){
   if (DEMO) return demoApi(params, source);
   const r = await fetch('/api/watches', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ params, source }) });
+  if (r.status === 401){ showLogin('Please sign in again'); throw new Error('Please sign in'); }
   const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
   if (!r.ok || j.error) throw new Error(j.error || `Request failed (${r.status})`);
   return j;
@@ -1085,12 +1135,12 @@ async function api(params, source){
 
 /* ============================== vendor / sold price fills ============================== */
 S.userPrefs = {};
-S.fills = new Map(); S.fillsOff = null; S.vendors = []; S.users = []; S.me = store.get('wc_user', '');
+S.fills = new Map(); S.fillsOff = null; S.vendors = []; S.users = []; S.me = ''; S.auth = null;
 const fillKey = (tab, col, val) => `${tab}\u0001${col}\u0001${val}`;
 async function loadFills(){
   try {
     if (DEMO){ S.fills = new Map(Object.entries(store.get('wc_fills_demo', {}))); S.vendors = store.get('wc_vendors_demo', []); S.users = normUsers(store.get('wc_users_demo', [])); if (!S.users.some(u => u.email === DEFAULT_ADMIN.email)) S.users.unshift({ ...DEFAULT_ADMIN }); S.users.forEach(u => { if (u.email === DEFAULT_ADMIN.email) u.role = 'admin'; }); const seeded = new Set(store.get('wc_seeded_emails', [])); DEMO_MEMBERS.forEach(m => { if (!seeded.has(m.email)){ if (!S.users.some(u => u.email === m.email)) S.users.push({ ...m }); seeded.add(m.email); } }); store.set('wc_users_demo', S.users); store.set('wc_seeded_emails', [...seeded]); S.userPrefs = store.get('wc_prefs_demo', {}); return; }
-    const r = await fetch('/api/fills'); const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
+    const r = await fetch('/api/fills'); if (r.status === 401){ showLogin('Please sign in again'); return; } const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
     if (!r.ok || j.error) throw new Error(j.error || `Request failed (${r.status})`);
     S.fills = new Map(j.rows.map(x => [fillKey(x.tab, x.group_col, x.group_value), { vendor:x.vendor, sold:x.sold_price, by:x.updated_by, at:x.updated_at }]));
     S.vendors = j.vendors || [];
@@ -1111,7 +1161,8 @@ async function saveFill(tab, col, val, field, value){
     store.set('wc_vendors_demo', S.vendors);
     return;
   }
-  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tab, group_col:col, group_value:val, field, value, user:S.me }) });
+  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ tab, group_col:col, group_value:val, field, value }) });
+  if (r.status === 401){ showLogin('Please sign in again'); throw new Error('Please sign in'); }
   const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
   if (!r.ok || j.error) throw new Error(j.error || `Save failed (${r.status})`);
   S.fills.set(k, cur);
@@ -1123,13 +1174,9 @@ function normUsers(list){ return (list || []).map(u => typeof u === 'string' ? {
 const isAdmin = () => meUser()?.role === 'admin' && meUser()?.active !== false;
 const DEMO_MEMBERS = [['Beatriz Garay','bgaray@arenaclub.com'], ['Brock Kounalis','bkounalis@arenaclub.com'], ['Nick Hartley','nhartley@arenaclub.com'], ['David Brockway','dbrockway@arenaclub.com'], ['Michelle Laddon','mladdon@arenaclub.com'], ['Kye Labit','klabit@arenaclub.com']].map(([name, email]) => ({ name, email, role:'user', active:true }));
 const userKey = u => u.email || u.name;
-function meUser(){ return S.users.find(u => u.email && u.email === S.me) || S.users.find(u => userKey(u) === S.me || u.name === S.me) || (S.me ? { name:S.me, email:/@/.test(S.me) ? S.me : '' } : null); }
+function meUser(){ return S.users.find(u => u.email && u.email === S.me) || S.auth || null; }
 // people saved before emails were required: move "you" onto the emailed person with the same name, keep the rest as old entries
 function migrateUsers(){
-  if (S.me && !/@/.test(S.me)){
-    const match = S.users.find(u => u.email && lc(u.name) === lc(S.me));
-    if (match){ S.me = match.email; store.set('wc_user', S.me); }
-  }
   if (DEMO){
     const named = new Set(S.users.filter(u => u.email).map(u => lc(u.name)));
     S.users = S.users.filter(u => u.email || !named.has(lc(u.name)));
@@ -1141,6 +1188,9 @@ const initials = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).
 function userLabel(id){ const u = S.users.find(x => userKey(x) === id || x.name === id); return u ? u.name : (id || ''); }
 function nameFromEmail(e){ return e.split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join(' '); }
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function demoPasswords(){ return store.get('wc_pw_demo', {}); }
+function demoPasswordFor(u){ return demoPasswords()[u.email] || defaultPassword(u.name); }
+const defaultPassword = name => (String(name || '').trim().split(/\s+/)[0] || 'user').toLowerCase().replace(/[^a-z0-9]/g, '') + '123';
 async function userAction(action, user){
   if (!isAdmin()) throw new Error('Only an admin can add, remove or change users');
   const email = String(user.email || '').trim().toLowerCase(), name = String(user.name || '').trim().slice(0, 80);
@@ -1150,18 +1200,25 @@ async function userAction(action, user){
   if (DEMO){
     if (action === 'add_user'){
       const ex = S.users.find(u => u.email === email);
-      if (ex) ex.name = name || ex.name; else S.users.push({ name: name || nameFromEmail(email), email, role:'user' });
+      const nm2 = name || nameFromEmail(email);
+      if (ex) ex.name = name || ex.name; else S.users.push({ name: nm2, email, role:'user', active:true });
+      const pw = String(user.password || '') || defaultPassword(nm2); if (pw.length < 4) throw new Error('Password must be at least 4 characters');
+      if (!ex) store.set('wc_pw_demo', { ...demoPasswords(), [email]: pw });
+      user.result = ex ? null : pw;
     } else if (action === 'set_role'){ const u = S.users.find(x => x.email === email); if (u) u.role = user.role; }
+    else if (action === 'reset_password'){ const u = S.users.find(x => x.email === email); const pw = String(user.password || '') || defaultPassword(u ? u.name : ''); store.set('wc_pw_demo', { ...demoPasswords(), [email]: pw }); user.result = pw; }
     else if (action === 'set_active'){ if (email === S.me) throw new Error("You can't turn off your own access"); const u = S.users.find(x => x.email === email); if (u) u.active = !!user.active; }
     else S.users = S.users.filter(u => email ? u.email !== email : !(u.name === name && !u.email));
     S.users.sort((a,b) => (b.role === 'admin') - (a.role === 'admin') || a.name.localeCompare(b.name, undefined, { sensitivity:'base' }));
     store.set('wc_users_demo', S.users);
     return;
   }
-  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action, email, name: name || (action === 'add_user' ? nameFromEmail(email) : name), role: user.role, active: user.active, actor: S.me }) });
+  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action, email, name: name || (action === 'add_user' ? nameFromEmail(email) : name), role: user.role, active: user.active, password: user.password || '' }) });
+  if (r.status === 401){ showLogin('Please sign in again'); throw new Error('Please sign in'); }
   const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
   if (!r.ok || j.error) throw new Error(j.error || `Failed (${r.status})`);
-  S.users = normUsers(j.users || S.users);
+  if (j.users) S.users = normUsers(j.users);
+  user.result = j.password || null;
 }
 function setMe(name){
   S.me = name; store.set('wc_user', name); drawUserChip();
@@ -1300,18 +1357,18 @@ function openColumns(){
 }
 function drawUserChip(){
   const el = $('userChip');
-  if (el) el.innerHTML = S.me ? `Editing as <b>${esc(userLabel(S.me))}</b>` : '<b class="warnc">Pick who you are</b>';
+  if (el) el.innerHTML = S.me ? `Editing as <b>${esc(meUser()?.name || S.me)}</b>` : '';
   const su = $('statusUser');
   if (su){
-    su.innerHTML = S.me ? `Editing as <b title="${esc(meUser()?.email || '')}">${esc(userLabel(S.me))}</b>${isAdmin() ? ' <span class="adminb">admin</span>' : ''}<a id="suChange">Change</a>` : `<span class="warnc">No user picked</span><a id="suChange">Pick user</a>`;
-    $('suChange').onclick = openUsers;
+    su.innerHTML = S.me ? `Signed in as <b title="${esc(S.me)}">${esc(meUser()?.name || S.me)}</b>${isAdmin() ? ' <span class="adminb">admin</span>' : ''}<a id="suChange">Sign out</a>` : '';
+    if ($('suChange')) $('suChange').onclick = () => signOut();
   }
 }
 function openUsers(){
   S.detail = null; $('modal').classList.remove('dmodal', 'cmodal', 'umodal'); $('modal').classList.add('umodal');
   migrateUsers();
   const close = () => { $('modal').classList.remove('open', 'umodal'); drawUserChip(); };
-  let q = '';
+  let q = '', note = '';
   const draw = (keep) => {
     const admin = isAdmin(), me = meUser();
     const people = S.users.filter(u => u.email);
@@ -1320,55 +1377,135 @@ function openUsers(){
     $('sheet').innerHTML = `
       <div class="uhead">
         <h3>Users <b>${people.length}</b></h3>
-        <span class="uyou">${me && me.email ? `You: <b>${esc(me.name)}</b>${me.role === 'admin' ? ' <span class="adminb">admin</span>' : ''}` : '<span class="warnc">Click your name to pick yourself</span>'}</span>
+        <span class="uyou">Signed in as <b>${esc(me?.name || S.me)}</b>${admin ? ' <span class="adminb">admin</span>' : ''}</span>
+        <button class="btn sm" id="uPw">Change my password</button>
         <button class="btn sm" id="uClose">Done</button>
       </div>
-      ${admin ? `<form id="uAdd" class="uadd2">
-        <input id="uEmail" type="email" placeholder="Add by email — name@arenaclub.com" maxlength="160" autocomplete="off">
+      <div id="uPwBox" class="upwbox" hidden>
+        <input id="uPwCur" type="password" placeholder="Current password" autocomplete="current-password">
+        <input id="uPwNew" type="password" placeholder="New password (6+ characters)" autocomplete="new-password">
+        <button class="btn go sm" id="uPwSave">Save</button>
+      </div>
+      ${admin ? `<form id="uAdd" class="uadd3">
+        <input id="uEmail" type="email" placeholder="Email — name@arenaclub.com" maxlength="160" autocomplete="off">
         <input id="uName" placeholder="Name (optional)" maxlength="80" autocomplete="off">
-        <button class="btn go sm">Add</button>
-      </form><div class="uhint" id="uHint"></div>` : `<div class="uhint">Only an admin can add people or change access.</div>`}
+        <input id="uPass" placeholder="Password (blank = first name + 123)" maxlength="100" autocomplete="new-password">
+        <button class="btn go">Add user</button>
+      </form><div class="uhint" id="uHint"></div>` : `<div class="uhint">Only an admin can add people, change access or reset passwords.</div>`}
+      ${note ? `<div class="unote">${note}</div>` : ''}
       ${people.length > 8 ? `<input class="usearch" id="uQ" placeholder="Search people…" value="${esc(q)}" autocomplete="off">` : ''}
-      <div class="utable">
-        <div class="uth"><span>Person</span><span>Role</span><span>Access</span><span></span></div>
+      <div class="utable big">
+        <div class="uth"><span>Person</span><span>Role</span><span>Access</span><span>Password</span><span></span></div>
         ${shown.map(u => {
           const isMe = me && me.email === u.email, on = u.active !== false;
           return `<div class="utr ${isMe ? 'me' : ''} ${on ? '' : 'off'}">
-            <button class="uwho" data-u="${esc(u.email)}" ${on ? '' : 'disabled'} title="${on ? (isMe ? 'This is you' : 'Pick ' + esc(u.name)) : 'Access is off'}">
-              <i class="uav">${esc(initials(u.name))}</i>
-              <span class="unm"><b>${esc(u.name)}${isMe ? ' <em>you</em>' : ''}</b><small>${esc(u.email)}</small></span>
-            </button>
+            <div class="uwho"><i class="uav">${esc(initials(u.name))}</i>
+              <span class="unm"><b>${esc(u.name)}${isMe ? ' <em>you</em>' : ''}</b><small>${esc(u.email)}</small></span></div>
             <span>${admin && !isMe ? `<button class="rolepill ${u.role}" data-role="${esc(u.email)}" data-to="${u.role === 'admin' ? 'user' : 'admin'}" title="Click to make ${u.role === 'admin' ? 'member' : 'admin'}">${u.role === 'admin' ? 'Admin' : 'Member'}</button>` : `<span class="rolepill static ${u.role}">${u.role === 'admin' ? 'Admin' : 'Member'}</span>`}</span>
             <span>${admin && !isMe ? `<button class="usw ${on ? 'on' : ''}" data-acc="${esc(u.email)}" data-to="${on ? '0' : '1'}" role="switch" aria-checked="${on}" title="Turn access ${on ? 'off' : 'on'}"><i></i><b>${on ? 'On' : 'Off'}</b></button>` : `<span class="usw static ${on ? 'on' : ''}"><i></i><b>${on ? 'On' : 'Off'}</b></span>`}</span>
+            <span>${admin && !isMe ? `<button class="ureset" data-reset="${esc(u.email)}" title="Reset to ${esc(defaultPassword(u.name))}">Reset</button>` : ''}</span>
             <span>${admin && !isMe ? `<button class="udel2" data-del="${esc(u.email)}" title="Remove ${esc(u.name)}" aria-label="Remove ${esc(u.name)}">✕</button>` : ''}</span>
           </div>`; }).join('') || '<div class="uempty">No one matches.</div>'}
       </div>
       ${admin && old.length ? `<div class="ulegacy"><span>${old.length} old ${old.length === 1 ? 'entry' : 'entries'} without an email (${old.map(u => esc(u.name.slice(0, 24))).join(', ')})</span><button class="btn sm" id="uClean">Remove</button></div>` : ''}
-      <p class="usub">Click a name to pick yourself. Edits and saved columns are kept under your email${DEMO ? ' (demo: this browser only)' : ''}.</p>`;
+      <p class="usub">New users sign in with their email and password. Default password is their first name + 123 (Beatriz → beatriz123); they can change it with “Change my password”.${DEMO ? ' Demo: kept in this browser only.' : ''}</p>`;
     $('uClose').onclick = close;
-    $('sheet').querySelectorAll('[data-u]').forEach(b => b.onclick = () => { setMe(b.dataset.u); draw(); });
-    $('sheet').querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { try { await userAction('set_active', { email:b.dataset.acc, active: b.dataset.to === '1' }); draw(); } catch(e){ toast(e.message); } });
-    $('sheet').querySelectorAll('[data-role]').forEach(b => b.onclick = async () => { try { await userAction('set_role', { email:b.dataset.role, role:b.dataset.to }); draw(); } catch(e){ toast(e.message); } });
+    $('uPw').onclick = () => { const bx = $('uPwBox'); bx.hidden = !bx.hidden; if (!bx.hidden) $('uPwCur').focus(); };
+    $('uPwSave').onclick = async () => { try { await changeMyPassword($('uPwCur').value, $('uPwNew').value); note = '✓ Your password was changed.'; draw(); } catch(e){ toast(e.message); } };
+    $('sheet').querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { try { await userAction('set_active', { email:b.dataset.acc, active: b.dataset.to === '1' }); note = ''; draw(); } catch(e){ toast(e.message); } });
+    $('sheet').querySelectorAll('[data-role]').forEach(b => b.onclick = async () => { try { await userAction('set_role', { email:b.dataset.role, role:b.dataset.to }); note = ''; draw(); } catch(e){ toast(e.message); } });
+    $('sheet').querySelectorAll('[data-reset]').forEach(b => b.onclick = async () => {
+      const who = userLabel(b.dataset.reset);
+      const pw = prompt(`New password for ${who}\\n(leave blank for the default: ${defaultPassword(who)})`, '');
+      if (pw === null) return;
+      const u = { email:b.dataset.reset, password: pw.trim() };
+      try { await userAction('reset_password', u); note = `✓ ${esc(who)}’s password is now <b>${esc(u.result || '')}</b> — share it with them.`; draw(); } catch(e){ toast(e.message); }
+    });
     $('sheet').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
       if (!confirm(`Remove ${userLabel(b.dataset.del)}? Their past edits stay.`)) return;
-      try { await userAction('remove_user', { email:b.dataset.del }); draw(); } catch(e){ toast(e.message); }
+      try { await userAction('remove_user', { email:b.dataset.del }); note = ''; draw(); } catch(e){ toast(e.message); }
     });
     $('uClean')?.addEventListener('click', async () => {
       try { for (const u of legacyUsers()) await userAction('remove_user', { name:u.name }); draw(); toast('Old entries removed'); } catch(e){ toast(e.message); }
     });
     const uq = $('uQ'); if (uq){ uq.oninput = () => { q = uq.value; draw(true); }; if (keep){ uq.focus(); uq.setSelectionRange(q.length, q.length); } }
-    const em = $('uEmail'), nm = $('uName'), hint = $('uHint');
+    const em = $('uEmail'), nm = $('uName'), pwi = $('uPass'), hint = $('uHint');
     if (em){
-      em.oninput = () => { const v = em.value.trim(); hint.textContent = v && !EMAIL_RE.test(v) ? 'Enter a full email address' : (v && !nm.value ? `Will show as “${nameFromEmail(v)}”` : ''); };
+      const upd = () => { const v = em.value.trim(); const n = nm.value.trim() || (EMAIL_RE.test(v) ? nameFromEmail(v) : ''); hint.textContent = v && !EMAIL_RE.test(v) ? 'Enter a full email address' : (v ? `Will show as “${n}”, password “${pwi.value.trim() || defaultPassword(n)}”` : ''); };
+      em.oninput = nm.oninput = pwi.oninput = upd;
       $('uAdd').onsubmit = async e => {
         e.preventDefault();
         const email = em.value.trim().toLowerCase(); if (!EMAIL_RE.test(email)){ hint.textContent = 'Enter a full email address'; em.focus(); return; }
         if (people.some(u => u.email === email) && !nm.value.trim()){ hint.textContent = 'Already on the list'; return; }
-        try { await userAction('add_user', { email, name: nm.value.trim() }); draw(); $('uEmail')?.focus(); toast('Added'); } catch(err){ toast(err.message); }
+        const u = { email, name: nm.value.trim(), password: pwi.value.trim() };
+        try { await userAction('add_user', u); note = u.result ? `✓ Added ${esc(u.name || nameFromEmail(email))} — they sign in with <b>${esc(email)}</b> / <b>${esc(u.result)}</b>.` : '✓ Updated.'; draw(); $('uEmail')?.focus(); } catch(err){ toast(err.message); }
       };
     }
   };
   draw(); $('modal').classList.add('open'); setTimeout(() => $('uEmail')?.focus(), 50);
+}
+
+/* ============================== sign in ============================== */
+function showLogin(msg){
+  $('app').hidden = true; $('login').hidden = false;
+  $('modal').classList.remove('open');
+  $('lErr').textContent = msg || '';
+  setTimeout(() => ($('lEmail').value ? $('lPass') : $('lEmail')).focus(), 30);
+}
+async function signIn(email, password){
+  email = email.trim().toLowerCase();
+  if (DEMO){
+    await loadFills();
+    const u = S.users.find(x => x.email === email);
+    const want = u ? demoPasswordFor(u) : null;
+    const ok = u && (password === want || (password.charAt(0).toLowerCase() + password.slice(1)) === want);
+    if (!ok) throw new Error('Wrong email or password');
+    if (u.active === false) throw new Error('Your access is turned off — ask an admin');
+    store.set('wc_session_demo', email);
+    return { name:u.name, email, role:u.role };
+  }
+  const r = await fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'login', email, password }) });
+  const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
+  if (!r.ok || j.error) throw new Error(j.error || 'Sign-in failed');
+  return j.user;
+}
+async function whoAmI(){
+  if (DEMO){
+    const email = store.get('wc_session_demo', '');
+    if (!email) return null;
+    await loadFills();
+    const u = S.users.find(x => x.email === email && x.active !== false);
+    return u ? { name:u.name, email, role:u.role } : null;
+  }
+  try { const r = await fetch('/api/auth'); if (!r.ok) return null; const j = await r.json(); return j.user || null; } catch { return null; }
+}
+async function changeMyPassword(current, next){
+  if (String(next).length < 6) throw new Error('New password must be at least 6 characters');
+  if (DEMO){
+    const u = meUser(); const want = demoPasswordFor(u);
+    if (current !== want && (current.charAt(0).toLowerCase() + current.slice(1)) !== want) throw new Error('Current password is wrong');
+    store.set('wc_pw_demo', { ...demoPasswords(), [u.email]: next }); return;
+  }
+  const r = await fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'change_password', current, next }) });
+  const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
+  if (!r.ok || j.error) throw new Error(j.error || 'Could not change password');
+}
+async function signOut(msg){
+  if (DEMO) store.set('wc_session_demo', '');
+  else { try { await fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'logout' }) }); } catch {} }
+  S.auth = null; S.me = ''; S.loaded = false; S.all = [];
+  $('lPass').value = '';
+  showLogin(msg || 'You are signed out.');
+}
+function enterApp(user){
+  S.auth = { ...user, active:true }; S.me = user.email;
+  $('login').hidden = true; $('app').hidden = false;
+  drawUserChip();
+  if (!S.loaded) loadAll();
+}
+async function boot(){
+  const u = await whoAmI();
+  if (u) enterApp(u); else showLogin();
 }
 
 /* ============================== Image tab ============================== */
@@ -1601,7 +1738,7 @@ async function loadAll(){
     + Object.entries(S.sources).map(([s,v]) => `<b>${v.count.toLocaleString()}</b> ${s === 'warehouse' ? 'in warehouse' : 'retrieved'}`).join(' · ')
     + `<span id="matchInfo"></span> · pulled ${new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit', second:'2-digit' })} (${secs}s)`;
   migrateUsers();
-  if (S.me && meUser() && meUser().active === false){ toast('Your access was turned off by an admin'); S.me = ''; store.set('wc_user', ''); }
+  if (DEMO && meUser() && meUser().active === false){ signOut('Your access was turned off by an admin'); return; }
   drawUserChip();
   if (!S.source) S.source = 'warehouse';
   drawSource();
@@ -1905,7 +2042,7 @@ function bindFills(){
       }
       const shown = inp.value;
       if (shown === inp.dataset.saved){ inp.classList.remove('bad'); return; }
-      if (!S.me){ inp.value = inp.dataset.saved; toast('Pick who you are first'); openUsers(); return; }
+      if (!S.me){ inp.value = inp.dataset.saved; showLogin('Please sign in'); return; }
       if (meUser() && meUser().active === false){ inp.value = inp.dataset.saved; toast('Your access is turned off — ask an admin'); return; }
       inp.classList.remove('bad'); inp.classList.add('saving');
       try {
@@ -2308,6 +2445,15 @@ $('onhand').checked = store.get('wc_onhand', true);
 $('onhand').addEventListener('change', () => { store.set('wc_onhand', $('onhand').checked); S.pages = 1; apply(); });
 $('reload').addEventListener('click', loadAll);
 $('hdrUsers').addEventListener('click', openUsers);
+$('hdrOut').addEventListener('click', () => signOut());
+$('lShow').addEventListener('click', () => { const p = $('lPass'); p.type = p.type === 'password' ? 'text' : 'password'; $('lShow').textContent = p.type === 'password' ? 'Show' : 'Hide'; });
+$('lform').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('lBtn').disabled = true; $('lErr').textContent = '';
+  try { enterApp(await signIn($('lEmail').value, $('lPass').value)); }
+  catch(err){ $('lErr').textContent = err.message; $('lPass').select(); }
+  finally { $('lBtn').disabled = false; }
+});
 function isLight(){ const t = document.documentElement.dataset.theme; return t ? t === 'light' : matchMedia('(prefers-color-scheme: light)').matches; }
 function drawThemeBtn(){ $('themeBtn').textContent = isLight() ? '☾ Dark' : '☀ Light'; }
 $('themeBtn').addEventListener('click', () => { const t = isLight() ? 'dark' : 'light'; document.documentElement.dataset.theme = t; store.set('wc_theme', t); drawThemeBtn(); });
@@ -2330,7 +2476,7 @@ document.addEventListener('keydown', e => {
 drawEx();
 const initial = new URLSearchParams(location.search).get('q');
 if (initial) $('q').value = initial;
-loadAll();
+boot();
 </script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 // Watch Inventory: Metabase proxy for the warehouse (31879) and retrieved items (47950) questions.
 // Env: METABASE_HOST, METABASE_API_KEY, optional WAREHOUSE_CARD_ID (or WATCH_CARD_ID) and RETRIEVED_CARD_ID.
+// Only signed-in, active users get data (see api/auth.js).
 // Uses the JSON export endpoint so results aren't capped at Metabase's 2,000-row /query limit.
 // Reads the question's own filters (template tags) and only sends the ones it has.
+
+import { db, currentUser } from './_lib/db.js';
 
 const SYNONYMS = {
   reference_number: ['reference_number', 'reference', 'ref', 'watch_reference', 'ref_number'],
@@ -40,6 +43,12 @@ function mapTags(tags) {
 }
 
 export default async function handler(req, res) {
+  try {
+    const me = await currentUser(req, await db());
+    if (!me) return res.status(401).json({ error: 'Please sign in' });
+  } catch (e) {
+    return res.status(500).json({ error: `Sign-in check failed: ${e.message}` });
+  }
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Use POST' }); }
 
   const host = (process.env.METABASE_HOST || '').replace(/\/+$/, '');

@@ -3,8 +3,10 @@
   "private": true,
   "version": "1.1.0",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "@neondatabase/serverless": "0.10.4"
+    "@neondatabase/serverless": "^0.10.4"
   }
 }
