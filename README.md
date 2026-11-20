@@ -46,6 +46,7 @@ Paste references (one per line, commas or spaces; "ref" words are ignored). Numb
 | Either word | `rolex omega black dial` (Rolex or Omega, black dial), `black blue dial`, `rolex or omega` — words that are values of the same column (brand, dial, status…) mean any of them |
 | Dollar range (EV) | `$400-$5000`, `$400 - $5,000`, `$3k-$6k`, `between $400 and $5000`, `under $1,000`, `over $8k`, `$5k+` |
 | Any column | `condition excellent`, `case_material:gold`, `bin:w-12`, `tag vookum`, `blue dial` |
+| Watch parts | `rolex steel bracelet white dial`, `leather strap blue dial`, `roman dial`, `gold case`, `ceramic bezel` — a word before bracelet/strap/band, dial, case, bezel, movement searches every column for that part (material, colour, type, style) |
 | Any column by name | `case size 40`, `bracelet color brown`, `item status listed`, `po number 4645`, `papers original` |
 | Weight / height / width / length | `weight 120-160`, `weight >150`, `height <11`, `width 40`, `length 45-50` (mm and grams) |
 | Exact | `brand=Rolex` |

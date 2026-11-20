@@ -574,7 +574,7 @@ const EXACT_BY_DEFAULT = new Set(['ref','ac','po','order']);
 const SOURCE_NAME = { warehouse:'Warehouse', retrieved:'Retrieved' };
 const SERVER_TAG = { ref:'reference_number', ac:'ac_number', po:'po_number', order:'order_number', model:'model' };
 const STOP = new Set(['show','me','find','all','the','a','an','with','and','of','for','watch','watches','that','are','have','we','in','list','get']);
-const EXAMPLES = ['all rolexes $400-$5000','weight 120-160 rolex','order 20575379','ac 4220749 3302372','ref 14000','rolex omega black dial','under $1,000 group:brand','condition excellent box original'];
+const EXAMPLES = ['rolex steel bracelet white dial','all rolexes $400-$5000','weight 120-160 rolex','order 20575379','ac 4220749 3302372','ref 14000','rolex omega black dial','under $1,000 group:brand','condition excellent box original'];
 const PAGE = { cards:60, table:300 };
 const DEFAULT_VISIBLE = ['IMAGE','AC','BRAND','MODEL','REF','DIAL','STATUS','EV','COST','PO'];
 
@@ -649,6 +649,16 @@ function toObjects(j, source){
 /* ============================== prompt parser ============================== */
 const FIELD_WORDS = 'ref|reference|8ac|ac|po|order|brand|model|status|tag|bin|condition|gender|movement|source|vault';
 const ID_FIELDS = new Set(['ref','ac','po','order']);
+// watch parts → the columns that describe them
+const PART_WORDS = { bracelet:['BRACELET','STRAP','BAND'], dial:['DIAL'], case:['CASE'], bezel:['BEZEL'], movement:['MOVEMENT','CALIBER','CALIBRE'], crystal:['CRYSTAL','GLASS'], hands:['HANDS'] };
+function partKey(word){
+  const w = lc(word).replace(/s$/, '');
+  return w === 'strap' || w === 'band' ? 'bracelet' : w === 'hand' ? 'hands' : w;
+}
+function partCols(key){
+  const stems = PART_WORDS[key] || [key.toUpperCase()];
+  return S.cols.filter(c => stems.some(s => c.includes(s)) && !/URL|IMAGE/.test(c) && !S.all.every(r => r[c] == null || r[c] === '' || num(r[c]) != null));
+}
 function quoteMultiWordValues(q){
   const col = colFor('brand'); if (!col || !S.all.length) return q;
   if (!quoteMultiWordValues.list || quoteMultiWordValues.n !== S.all.length){
@@ -665,6 +675,17 @@ function preprocess(raw){
   let q = ' ' + String(raw || '').replace(/[\r\n\t]+/g, ' ') + ' ';
   // multi-word values (brands like "grand seiko", "jack mason", "tag heuer") are kept together as one phrase
   q = quoteMultiWordValues(q);
+  // "<value> <watch part>" → search every column for that part:
+  // "steel bracelet" (bracelet material/colour/type), "white dial" (dial colour/style), "gold case", "ceramic bezel"
+  q = q.replace(/(^|\s)(-?)("[^"]+"|[a-z][\w-]*)\s+(bracelets?|straps?|bands?|dials?|cases?|bezels?|movements?|crystals?|hands?)(?=[\s.,]|$)/gi, (m, pre, neg, v, part) => {
+    const val = v.replace(/^"|"$/g, '');
+    if (STOP.has(val.toLowerCase()) || /^\d/.test(val)) return m;
+    const key = partKey(part), cols = partCols(key);
+    if (!cols.length) return m;
+    const lv = lc(val), nv = norm(val);
+    const exists = S.all.some(r => cols.some(c => lc(r[c]).replace(/_/g, ' ').includes(lv) || (nv && norm(r[c]).includes(nv))));
+    return exists ? `${pre}${neg}${key}__part:${v}` : m;
+  });
   // "order number 123" / "ac no. 123" / "ref # 123" / "8ac number 123"
   q = q.replace(/\b(order|8ac|ac|po|ref|reference|item)\s*(?:number|num|nos?\.?|#)(?=\s|\d)/gi, '$1 ');
   // money phrases -> $a-$b, ev<=, ev>=
@@ -686,8 +707,6 @@ function preprocess(raw){
   // ID fields swallow more IDs separated by spaces: "ac 4220749 3302372 4300009"
   q = q.replace(/(\s-?(?:ref|reference|8ac|ac|po|order):)(\S+)((?:\s+#?[A-Za-z0-9.\-\/]*\d[A-Za-z0-9.\-\/]*)+)(?=\s)/gi,
     (m, a, b, rest) => a + b + '|' + rest.trim().split(/\s+/).map(x => x.replace(/^#/, '').replace(/[.,]+$/, '')).join('|'));
-  // "blue dial" -> dial:blue
-  q = q.replace(/\s(-?)("[^"]+"|[a-z][\w-]*)\s+dial(?=\s)/gi, (m, neg, v) => STOP.has(v.toLowerCase()) ? m : ` ${neg}dial:${v}`);
   return q.replace(/\s+/g, ' ').trim();
 }
 
@@ -785,6 +804,13 @@ function parse(raw){
         c ? (out.sort = { col:c, dir: /^asc/i.test(parts[1] || '') ? 1 : -1 }, out.sortRaw = rawTok) : out.warnings.push(`No column “${parts[0]}” to sort by`);
         continue;
       }
+      if (k.endsWith('__part')){
+        const key = k.slice(0, -6), cols = partCols(key);
+        const vals = val.split('|').map(s => s.trim()).filter(Boolean);
+        const items = cols.map(c => ({ kind:'field', col:c, key:c.toLowerCase(), op:'has', vals:[...vals], neg:false, raws:[] }));
+        out.filters.push({ kind:'any', part:key, vals, items, neg, raws:[rawTok] });
+        pendingOr = false; continue;
+      }
       const col = resolveCol(k);
       if (col){
         const short = aliasKey(k);
@@ -823,6 +849,8 @@ function parse(raw){
     if (f.kind !== 'kw' || f.neg || f.idExact) return;
     const col = valueColumn(f.v); if (!col) return;
     // joins a filter already on that column ("black blue dial" → dial is black or blue)
+    const part = out.filters.find(g => g.kind === 'any' && g.part && !g.neg && partCols(g.part).includes(col));
+    if (part){ const v = valueColumn.hit[f.v] || f.v; if (part.vals.includes(v)) { out.filters = out.filters.filter(g => g !== f); return; } part.vals.push(v); part.items.forEach(i => i.vals.push(v)); part.raws.push(...f.raws); out.filters = out.filters.filter(g => g !== f); return; }
     const same = out.filters.find(g => g.kind === 'field' && g.col === col && !g.neg && g.vals);
     if (same){ same.vals.push(valueColumn.hit[f.v] || f.v); same.raws.push(...f.raws); out.filters = out.filters.filter(g => g !== f); return; }
     if (!byCol.has(col)) byCol.set(col, []);
@@ -868,6 +896,7 @@ function test(row, f){
 }
 
 function describe(f){
+  if (f.kind === 'any' && f.part) return `${esc(f.part)} <em>${f.neg ? 'is not' : 'is'}</em> ${f.vals.map(v => '“' + esc(v) + '”').join(' or ')}`;
   if (f.kind === 'any'){
     if (f.items.every(i => i.idExact)) return `<em>${f.items.length} IDs:</em> ${f.items.map(i => esc(i.v)).join(', ')}`;
     return f.items.map(describe).join(' <em>or</em> ');
@@ -884,7 +913,7 @@ function describe(f){
 
 /* ============================== demo data ============================== */
 const DEMO = window.__DEMO__ === true || new URLSearchParams(location.search).has('demo');
-const DEMO_COLS = ['AC_NUMBER','ITEM_STATUS','ESTIMATED_VALUE','PURCHASE_COST','BRAND_NAME','MODEL','REFERENCE','DIAL_COLOR','MOVEMENT','CASE_SIZE','CASE_MATERIAL','BRACELET_MATERIAL','BRACELET_COLOR','GENDER','CONDITION','BOX','PAPERS','TAG','PO_NUMBER','ORDER_NUMBER','BIN','IMAGE_URL','ITEM_URL','WEIGHT_G','HEIGHT_MM','WIDTH_MM','LENGTH_MM'];
+const DEMO_COLS = ['AC_NUMBER','ITEM_STATUS','ESTIMATED_VALUE','PURCHASE_COST','BRAND_NAME','MODEL','REFERENCE','DIAL_COLOR','MOVEMENT','CASE_SIZE','CASE_MATERIAL','BRACELET_MATERIAL','BRACELET_COLOR','GENDER','CONDITION','BOX','PAPERS','TAG','PO_NUMBER','ORDER_NUMBER','BIN','IMAGE_URL','ITEM_URL','WEIGHT_G','HEIGHT_MM','WIDTH_MM','LENGTH_MM','DIAL_STYLE','BRACELET_TYPE'];
 const DEMO_DIALS = { pink:'#c98f7e', black:'#141414', blue:'#1f4fa3', white:'#efefea', silver:'#c4c8cc', green:'#1f6b3a', grey:'#5f656b', champagne:'#d8c08a', brown:'#5a3a22' };
 const DEMO_CAT = [
   ['Rolex','Airking','14000',['pink','black','blue','silver'],34,'steel','steel','silver','male',4600,'automatic'],
@@ -972,7 +1001,9 @@ function demoRows(source){
       brand, model, ref, dial, mov, size, mat, brMat, brCol, gender, cond, pick(DEMO_BOX), pick(DEMO_PAPERS), pick(DEMO_TAGS),
       pick([4412, 4518, 4645, 4710, 4802]), 15700000 + Math.floor(rnd() * 5000000), source === 'retrieved' ? null : `#2 Davos · W-${String(1 + Math.floor(rnd() * 40)).padStart(2,'0')}`,
       (DEMO_NO_PHOTO.has(ref + '|' + dial) || rnd() < 0.12) ? null : demoImg(dial, brMat), `https://admin.arenaclub.com/watches/${ac}`,
-      Math.round((brMat === 'leather' ? 40 : 75) + size * 1.6 + rnd() * 25), Math.round((9 + rnd() * 6) * 10) / 10, size, Math.round(size * (1.14 + rnd() * 0.1) * 10) / 10]);
+      Math.round((brMat === 'leather' ? 40 : 75) + size * 1.6 + rnd() * 25), Math.round((9 + rnd() * 6) * 10) / 10, size, Math.round(size * (1.14 + rnd() * 0.1) * 10) / 10,
+      pick(brand === 'Richard Mille' ? ['skeleton'] : ['index','index','arabic','roman','index & arabic']),
+      brMat === 'steel' ? pick(brand === 'Rolex' ? ['oyster','oyster','jubilee'] : ['link','link','mesh']) : brMat === 'leather' ? 'leather strap' : brMat + ' strap']);
   }
   return rows;
 }
@@ -1536,7 +1567,7 @@ function drawChips(p){
   const rebuild = drop => {
     const left = [...p.tokens];
     drop.forEach(t => { const i = left.indexOf(t); if (i > -1) left.splice(i, 1); });
-    $('q').value = left.join(' ').replace(/^(or\s+)+|(\s+or)+$/gi, '').replace(/\bor(\s+or)+\b/gi, 'or').trim();
+    $('q').value = left.map(t => t.replace(/^(-?)(\w+)__part:(.+)$/, (m, n, part, v) => `${n}${v.replace(/\|/g, ' ')} ${part}`)).join(' ').replace(/^(or\s+)+|(\s+or)+$/gi, '').replace(/\bor(\s+or)+\b/gi, 'or').trim();
     run($('q').value);
   };
   $('chips').querySelectorAll('[data-rmf]').forEach(b => b.addEventListener('click', () => rebuild(p.filters[+b.dataset.rmf].raws)));
