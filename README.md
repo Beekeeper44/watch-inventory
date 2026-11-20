@@ -24,6 +24,9 @@ Neon stores only those two columns (table `watch_group_fills`) and the list of v
 Setup: Vercel → Storage → connect a Neon database to the project (this adds `DATABASE_URL`), then redeploy.
 
 ## Users
+**Members** (added once each on first run): Beatriz Garay (bgaray@), Brock Kounalis (bkounalis@), Nick Hartley (nhartley@), David Brockway (dbrockway@), Michelle Laddon (mladdon@), Kye Labit (klabit@) — all @arenaclub.com. More can be added in the app by the admin. Admins turn anyone's access **On/Off** in Users; a user whose access is off can't be picked and their edits are refused by the server. No extra Vercel settings are needed — the new columns (`role`, `active`) and table (`watch_meta`) are created automatically.
+**Admin:** Alan Bailey (alan@arenaclub.com) is created as admin automatically. Only admins can add or remove users and make others admin (there's always at least one admin). Set `ADMIN_EMAILS` in Vercel to change the default, e.g. `alan@arenaclub.com:Alan Bailey,karl@arenaclub.com:Karl Calma`.
+Users are added by **email** (name optional — defaults from the email, e.g. karl.calma@… → Karl Calma). The email is the identity: edits and saved columns are stored under it. `watch_users` gets an `email` column automatically; older name-only users still show and can be given an email.
 "Editing as" (next to Totals by) opens the user list. Add people, pick who you are (remembered per browser);
 every Vendor / Sold price edit is saved with that name (hover a cell to see who last edited it). Users live in Neon (`watch_users`).
 Columns (List view) opens a pop-up to pick table columns; Save stores them for the picked user in Neon (`watch_user_prefs`) and they load whenever that user is picked.

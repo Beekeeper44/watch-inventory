@@ -170,6 +170,67 @@ table.gtable .share{height:8px}
 .udel{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;width:40px}
 .udel:hover{border-color:var(--red);color:var(--red)}
 .uadd{display:flex;gap:8px;margin-top:14px}
+.uadd2[hidden]{display:none}
+.uadd2{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;margin-top:14px}
+.uadd2 input{background:var(--input);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;min-width:0}
+.uadd2 input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.adminb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--on-green);background:var(--green);border-radius:5px;padding:1px 6px;vertical-align:middle}
+.urow.off .upick{opacity:.55;cursor:not-allowed}
+.offb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--red);border:1px solid var(--red);border-radius:5px;padding:0 5px;vertical-align:middle}
+.uacc{display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;font:inherit;font-size:12px;font-weight:700;padding:0 10px;cursor:pointer;min-width:64px}
+.uacc i{width:26px;height:14px;border-radius:999px;background:var(--line2);position:relative;transition:background .15s}
+.uacc i::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--muted);transition:left .15s,background .15s}
+.uacc.on{color:var(--green)}
+.uacc.on i{background:var(--green-dim)}
+.uacc.on i::after{left:14px;background:var(--green)}
+.uacc:hover{border-color:var(--green);box-shadow:0 0 12px var(--glow)}
+.urole{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:8px;font:inherit;font-size:12px;font-weight:700;padding:0 10px;cursor:pointer;white-space:nowrap}
+.urole:hover{border-color:var(--green);color:var(--green);box-shadow:0 0 12px var(--glow)}
+.modal.umodal .sheet{width:min(720px,100%)}
+.uhead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.uhead h3{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}
+.uhead h3 b{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:1px 8px}
+.uyou{margin-left:auto;font-size:13px;color:var(--muted)}
+.uyou b{color:var(--text)}
+.usub{color:var(--faint);font-size:12px;margin:12px 0 0}
+.usearch{width:100%;margin-top:10px;background:var(--input);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:9px 12px;font:inherit;font-size:13.5px}
+.usearch:focus{outline:none;border-color:var(--green)}
+.utable{margin-top:12px;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.uth,.utr{display:grid;grid-template-columns:minmax(0,1fr) 92px 78px 34px;align-items:center;gap:10px;padding:0 10px}
+.uth{background:var(--panel2);color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding-top:8px;padding-bottom:8px}
+.utr{border-top:1px solid var(--line);min-height:52px}
+.utr:hover{background:var(--panel2)}
+.utr.me{background:rgba(57,255,20,.06)}
+.utr.off .uwho{opacity:.5}
+.uwho{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--text);text-align:left;padding:8px 0;cursor:pointer;min-width:0;font:inherit}
+.uwho:disabled{cursor:not-allowed}
+.uav{flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;background:var(--panel2);border:1.5px solid var(--line2);color:var(--text)}
+.utr.me .uav{border-color:var(--green);color:var(--green)}
+.unm{display:flex;flex-direction:column;min-width:0}
+.unm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unm b em{font-style:normal;font-size:10.5px;font-weight:800;text-transform:uppercase;color:var(--green);margin-left:6px;letter-spacing:.05em}
+.unm small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rolepill{font:inherit;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;border:1px solid var(--line2);background:none;color:var(--muted);cursor:pointer}
+.rolepill.admin{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.rolepill.static{cursor:default}
+.usw{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;font:inherit;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+.usw i{width:30px;height:17px;border-radius:999px;background:var(--line2);position:relative;transition:background .15s}
+.usw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--muted);transition:left .15s,background .15s}
+.usw.on{color:var(--green)}
+.usw.on i{background:var(--green-dim)}
+.usw.on i::after{left:15px;background:var(--green)}
+.usw.static{cursor:default}
+button.usw:hover i{box-shadow:0 0 0 1px var(--green),0 0 10px var(--glow)}
+.udel2{width:30px;height:30px;border-radius:8px;border:1px solid transparent;background:none;color:var(--faint);cursor:pointer;font-size:13px}
+.udel2:hover{border-color:var(--red);color:var(--red);box-shadow:0 0 12px rgba(255,92,92,.35)}
+.uempty{padding:14px;color:var(--faint);font-size:13px}
+.ulegacy{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border:1px dashed var(--line2);border-radius:8px;font-size:12px;color:var(--muted)}
+.ulegacy span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){ .uth{display:none} .uth,.utr{grid-template-columns:minmax(0,1fr) auto auto 30px} .uyou{display:none} }
+.uhint{font-size:12px;color:var(--muted);min-height:16px;margin-top:6px}
+.upick{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.upick .ue{font-size:12px;color:var(--muted);font-weight:500}
+@media (max-width:620px){ .uadd2{grid-template-columns:1fr} }
 .uadd input{flex:1;background:var(--input);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 12px;font:inherit;font-size:14px}
 .uadd input:focus{outline:none;border-color:var(--green)}
 
@@ -1028,12 +1089,12 @@ S.fills = new Map(); S.fillsOff = null; S.vendors = []; S.users = []; S.me = sto
 const fillKey = (tab, col, val) => `${tab}\u0001${col}\u0001${val}`;
 async function loadFills(){
   try {
-    if (DEMO){ S.fills = new Map(Object.entries(store.get('wc_fills_demo', {}))); S.vendors = store.get('wc_vendors_demo', []); S.users = store.get('wc_users_demo', ['Alan Bailey']); S.userPrefs = store.get('wc_prefs_demo', {}); return; }
+    if (DEMO){ S.fills = new Map(Object.entries(store.get('wc_fills_demo', {}))); S.vendors = store.get('wc_vendors_demo', []); S.users = normUsers(store.get('wc_users_demo', [])); if (!S.users.some(u => u.email === DEFAULT_ADMIN.email)) S.users.unshift({ ...DEFAULT_ADMIN }); S.users.forEach(u => { if (u.email === DEFAULT_ADMIN.email) u.role = 'admin'; }); const seeded = new Set(store.get('wc_seeded_emails', [])); DEMO_MEMBERS.forEach(m => { if (!seeded.has(m.email)){ if (!S.users.some(u => u.email === m.email)) S.users.push({ ...m }); seeded.add(m.email); } }); store.set('wc_users_demo', S.users); store.set('wc_seeded_emails', [...seeded]); S.userPrefs = store.get('wc_prefs_demo', {}); return; }
     const r = await fetch('/api/fills'); const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
     if (!r.ok || j.error) throw new Error(j.error || `Request failed (${r.status})`);
     S.fills = new Map(j.rows.map(x => [fillKey(x.tab, x.group_col, x.group_value), { vendor:x.vendor, sold:x.sold_price, by:x.updated_by, at:x.updated_at }]));
     S.vendors = j.vendors || [];
-    S.users = j.users || [];
+    S.users = normUsers(j.users || []);
     S.userPrefs = Object.fromEntries((j.prefs || []).map(x => [x.name, x.prefs || {}]));
     S.fillsOff = null;
   } catch(e){ S.fillsOff = e.message; }
@@ -1056,20 +1117,51 @@ async function saveFill(tab, col, val, field, value){
   S.fills.set(k, cur);
   addVendorName(field === 'vendor' ? value : null);
 }
-async function userAction(action, name){
-  name = String(name || '').trim().slice(0, 80);
-  if (!name) return;
+// users: { name, email } — email is the identity, name is what's shown
+const DEFAULT_ADMIN = { name:'Alan Bailey', email:'alan@arenaclub.com', role:'admin', active:true };
+function normUsers(list){ return (list || []).map(u => typeof u === 'string' ? { name:u, email:'', role:'user' } : { name:u.name || '', email:(u.email || '').toLowerCase(), role:u.role === 'admin' ? 'admin' : 'user', active:u.active !== false }); }
+const isAdmin = () => meUser()?.role === 'admin' && meUser()?.active !== false;
+const DEMO_MEMBERS = [['Beatriz Garay','bgaray@arenaclub.com'], ['Brock Kounalis','bkounalis@arenaclub.com'], ['Nick Hartley','nhartley@arenaclub.com'], ['David Brockway','dbrockway@arenaclub.com'], ['Michelle Laddon','mladdon@arenaclub.com'], ['Kye Labit','klabit@arenaclub.com']].map(([name, email]) => ({ name, email, role:'user', active:true }));
+const userKey = u => u.email || u.name;
+function meUser(){ return S.users.find(u => u.email && u.email === S.me) || S.users.find(u => userKey(u) === S.me || u.name === S.me) || (S.me ? { name:S.me, email:/@/.test(S.me) ? S.me : '' } : null); }
+// people saved before emails were required: move "you" onto the emailed person with the same name, keep the rest as old entries
+function migrateUsers(){
+  if (S.me && !/@/.test(S.me)){
+    const match = S.users.find(u => u.email && lc(u.name) === lc(S.me));
+    if (match){ S.me = match.email; store.set('wc_user', S.me); }
+  }
   if (DEMO){
-    if (action === 'add_user'){ if (!S.users.some(u => u.toLowerCase() === name.toLowerCase())) S.users.push(name); }
-    else S.users = S.users.filter(u => u !== name);
-    S.users.sort((a,b) => a.localeCompare(b, undefined, { sensitivity:'base' }));
+    const named = new Set(S.users.filter(u => u.email).map(u => lc(u.name)));
+    S.users = S.users.filter(u => u.email || !named.has(lc(u.name)));
+    store.set('wc_users_demo', S.users);
+  }
+}
+const legacyUsers = () => S.users.filter(u => !u.email);
+const initials = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+function userLabel(id){ const u = S.users.find(x => userKey(x) === id || x.name === id); return u ? u.name : (id || ''); }
+function nameFromEmail(e){ return e.split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join(' '); }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+async function userAction(action, user){
+  if (!isAdmin()) throw new Error('Only an admin can add, remove or change users');
+  const email = String(user.email || '').trim().toLowerCase(), name = String(user.name || '').trim().slice(0, 80);
+  if (action === 'remove_user' && (email || name) === S.me) throw new Error("You can't remove yourself");
+  if (action === 'set_role' && user.role === 'user' && S.users.filter(u => u.role === 'admin').length <= 1) throw new Error('There must be at least one admin');
+  if (action === 'add_user' && !EMAIL_RE.test(email)) throw new Error('Enter a valid email');
+  if (DEMO){
+    if (action === 'add_user'){
+      const ex = S.users.find(u => u.email === email);
+      if (ex) ex.name = name || ex.name; else S.users.push({ name: name || nameFromEmail(email), email, role:'user' });
+    } else if (action === 'set_role'){ const u = S.users.find(x => x.email === email); if (u) u.role = user.role; }
+    else if (action === 'set_active'){ if (email === S.me) throw new Error("You can't turn off your own access"); const u = S.users.find(x => x.email === email); if (u) u.active = !!user.active; }
+    else S.users = S.users.filter(u => email ? u.email !== email : !(u.name === name && !u.email));
+    S.users.sort((a,b) => (b.role === 'admin') - (a.role === 'admin') || a.name.localeCompare(b.name, undefined, { sensitivity:'base' }));
     store.set('wc_users_demo', S.users);
     return;
   }
-  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action, name }) });
+  const r = await fetch('/api/fills', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action, email, name: name || (action === 'add_user' ? nameFromEmail(email) : name), role: user.role, active: user.active, actor: S.me }) });
   const j = await r.json().catch(() => ({ error:`Server returned ${r.status}` }));
   if (!r.ok || j.error) throw new Error(j.error || `Failed (${r.status})`);
-  S.users = j.users || S.users;
+  S.users = normUsers(j.users || S.users);
 }
 function setMe(name){
   S.me = name; store.set('wc_user', name); drawUserChip();
@@ -1126,7 +1218,7 @@ function openColumns(){
     first = false;
     const hidden = pickable.filter(c => !order.includes(c));
     $('sheet').innerHTML = `
-      <div class="colhead"><h3>Columns</h3><span class="colfor">${S.me ? `Saving for <b>${esc(S.me)}</b>` : '<span class="warnc">No user picked — saves to this browser only</span>'}</span></div>
+      <div class="colhead"><h3>Columns</h3><span class="colfor">${S.me ? `Saving for <b>${esc(userLabel(S.me))}</b>` : '<span class="warnc">No user picked — saves to this browser only</span>'}</span></div>
       <p class="colhelp">Drag to reorder. Click the eye to hide or show. Item URL always shows first.</p>
       <input class="colsearch" id="colQ" placeholder="Search for a column…" value="${esc(q)}" autocomplete="off" spellcheck="false">
       <div class="colbody"><div class="colleft">
@@ -1200,44 +1292,83 @@ function openColumns(){
       try {
         const where = await saveColumns([...order]);
         $('modal').classList.remove('open'); render();
-        toast(where === 'user' ? `Columns saved for ${S.me}` : 'Columns saved to this browser');
+        toast(where === 'user' ? `Columns saved for ${userLabel(S.me)}` : 'Columns saved to this browser');
       } catch(e){ $('cSave').disabled = false; toast(e.message); }
     };
   };
-  draw(); $('modal').classList.add('open', 'cmodal');
+  $('modal').classList.remove('umodal'); draw(); $('modal').classList.add('open', 'cmodal');
 }
 function drawUserChip(){
   const el = $('userChip');
-  if (el) el.innerHTML = S.me ? `Editing as <b>${esc(S.me)}</b>` : '<b class="warnc">Pick who you are</b>';
+  if (el) el.innerHTML = S.me ? `Editing as <b>${esc(userLabel(S.me))}</b>` : '<b class="warnc">Pick who you are</b>';
   const su = $('statusUser');
   if (su){
-    su.innerHTML = S.me ? `Editing as <b>${esc(S.me)}</b><a id="suChange">Change</a>` : `<span class="warnc">No user picked</span><a id="suChange">Pick user</a>`;
+    su.innerHTML = S.me ? `Editing as <b title="${esc(meUser()?.email || '')}">${esc(userLabel(S.me))}</b>${isAdmin() ? ' <span class="adminb">admin</span>' : ''}<a id="suChange">Change</a>` : `<span class="warnc">No user picked</span><a id="suChange">Pick user</a>`;
     $('suChange').onclick = openUsers;
   }
 }
 function openUsers(){
-  S.detail = null; $('modal').classList.remove('dmodal', 'cmodal');
-  const close = () => { $('modal').classList.remove('open'); drawUserChip(); };
-  const draw = () => {
+  S.detail = null; $('modal').classList.remove('dmodal', 'cmodal', 'umodal'); $('modal').classList.add('umodal');
+  migrateUsers();
+  const close = () => { $('modal').classList.remove('open', 'umodal'); drawUserChip(); };
+  let q = '';
+  const draw = (keep) => {
+    const admin = isAdmin(), me = meUser();
+    const people = S.users.filter(u => u.email);
+    const shown = people.filter(u => !q || lc(u.name).includes(lc(q)) || u.email.includes(lc(q)));
+    const old = legacyUsers();
     $('sheet').innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px"><h3 style="margin:0">Users</h3><button class="btn sm" id="uClose" style="margin-left:auto">Done</button></div>
-      <p style="color:var(--muted);font-size:13px;margin:6px 0 14px">Pick who you are. Vendor and Sold price edits are saved with your name${DEMO ? ' (demo: this browser only)' : ' in Neon'}.</p>
-      <div class="ulist">${S.users.length ? S.users.map(u => `<div class="urow ${u === S.me ? 'me' : ''}">
-          <button class="upick" data-u="${esc(u)}">${u === S.me ? '✓ ' : ''}${esc(u)}</button>
-          <button class="udel" data-del="${esc(u)}" aria-label="Remove ${esc(u)}" title="Remove">✕</button></div>`).join('') : '<div style="color:var(--faint)">No users yet. Add the first one below.</div>'}</div>
-      <form id="uAdd" class="uadd"><input id="uName" placeholder="Add a user, e.g. Karl Calma" maxlength="80" autocomplete="off"><button class="btn go sm">Add</button></form>`;
+      <div class="uhead">
+        <h3>Users <b>${people.length}</b></h3>
+        <span class="uyou">${me && me.email ? `You: <b>${esc(me.name)}</b>${me.role === 'admin' ? ' <span class="adminb">admin</span>' : ''}` : '<span class="warnc">Click your name to pick yourself</span>'}</span>
+        <button class="btn sm" id="uClose">Done</button>
+      </div>
+      ${admin ? `<form id="uAdd" class="uadd2">
+        <input id="uEmail" type="email" placeholder="Add by email — name@arenaclub.com" maxlength="160" autocomplete="off">
+        <input id="uName" placeholder="Name (optional)" maxlength="80" autocomplete="off">
+        <button class="btn go sm">Add</button>
+      </form><div class="uhint" id="uHint"></div>` : `<div class="uhint">Only an admin can add people or change access.</div>`}
+      ${people.length > 8 ? `<input class="usearch" id="uQ" placeholder="Search people…" value="${esc(q)}" autocomplete="off">` : ''}
+      <div class="utable">
+        <div class="uth"><span>Person</span><span>Role</span><span>Access</span><span></span></div>
+        ${shown.map(u => {
+          const isMe = me && me.email === u.email, on = u.active !== false;
+          return `<div class="utr ${isMe ? 'me' : ''} ${on ? '' : 'off'}">
+            <button class="uwho" data-u="${esc(u.email)}" ${on ? '' : 'disabled'} title="${on ? (isMe ? 'This is you' : 'Pick ' + esc(u.name)) : 'Access is off'}">
+              <i class="uav">${esc(initials(u.name))}</i>
+              <span class="unm"><b>${esc(u.name)}${isMe ? ' <em>you</em>' : ''}</b><small>${esc(u.email)}</small></span>
+            </button>
+            <span>${admin && !isMe ? `<button class="rolepill ${u.role}" data-role="${esc(u.email)}" data-to="${u.role === 'admin' ? 'user' : 'admin'}" title="Click to make ${u.role === 'admin' ? 'member' : 'admin'}">${u.role === 'admin' ? 'Admin' : 'Member'}</button>` : `<span class="rolepill static ${u.role}">${u.role === 'admin' ? 'Admin' : 'Member'}</span>`}</span>
+            <span>${admin && !isMe ? `<button class="usw ${on ? 'on' : ''}" data-acc="${esc(u.email)}" data-to="${on ? '0' : '1'}" role="switch" aria-checked="${on}" title="Turn access ${on ? 'off' : 'on'}"><i></i><b>${on ? 'On' : 'Off'}</b></button>` : `<span class="usw static ${on ? 'on' : ''}"><i></i><b>${on ? 'On' : 'Off'}</b></span>`}</span>
+            <span>${admin && !isMe ? `<button class="udel2" data-del="${esc(u.email)}" title="Remove ${esc(u.name)}" aria-label="Remove ${esc(u.name)}">✕</button>` : ''}</span>
+          </div>`; }).join('') || '<div class="uempty">No one matches.</div>'}
+      </div>
+      ${admin && old.length ? `<div class="ulegacy"><span>${old.length} old ${old.length === 1 ? 'entry' : 'entries'} without an email (${old.map(u => esc(u.name.slice(0, 24))).join(', ')})</span><button class="btn sm" id="uClean">Remove</button></div>` : ''}
+      <p class="usub">Click a name to pick yourself. Edits and saved columns are kept under your email${DEMO ? ' (demo: this browser only)' : ''}.</p>`;
     $('uClose').onclick = close;
     $('sheet').querySelectorAll('[data-u]').forEach(b => b.onclick = () => { setMe(b.dataset.u); draw(); });
+    $('sheet').querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => { try { await userAction('set_active', { email:b.dataset.acc, active: b.dataset.to === '1' }); draw(); } catch(e){ toast(e.message); } });
+    $('sheet').querySelectorAll('[data-role]').forEach(b => b.onclick = async () => { try { await userAction('set_role', { email:b.dataset.role, role:b.dataset.to }); draw(); } catch(e){ toast(e.message); } });
     $('sheet').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
-      if (!confirm(`Remove ${b.dataset.del} from the user list? Their past edits stay.`)) return;
-      try { await userAction('remove_user', b.dataset.del); if (S.me === b.dataset.del) setMe(''); draw(); } catch(e){ toast(e.message); }
+      if (!confirm(`Remove ${userLabel(b.dataset.del)}? Their past edits stay.`)) return;
+      try { await userAction('remove_user', { email:b.dataset.del }); draw(); } catch(e){ toast(e.message); }
     });
-    $('uAdd').onsubmit = async e => {
-      e.preventDefault(); const n = $('uName').value.trim(); if (!n) return;
-      try { await userAction('add_user', n); if (!S.me) setMe(n); draw(); $('uName').focus(); } catch(err){ toast(err.message); }
-    };
+    $('uClean')?.addEventListener('click', async () => {
+      try { for (const u of legacyUsers()) await userAction('remove_user', { name:u.name }); draw(); toast('Old entries removed'); } catch(e){ toast(e.message); }
+    });
+    const uq = $('uQ'); if (uq){ uq.oninput = () => { q = uq.value; draw(true); }; if (keep){ uq.focus(); uq.setSelectionRange(q.length, q.length); } }
+    const em = $('uEmail'), nm = $('uName'), hint = $('uHint');
+    if (em){
+      em.oninput = () => { const v = em.value.trim(); hint.textContent = v && !EMAIL_RE.test(v) ? 'Enter a full email address' : (v && !nm.value ? `Will show as “${nameFromEmail(v)}”` : ''); };
+      $('uAdd').onsubmit = async e => {
+        e.preventDefault();
+        const email = em.value.trim().toLowerCase(); if (!EMAIL_RE.test(email)){ hint.textContent = 'Enter a full email address'; em.focus(); return; }
+        if (people.some(u => u.email === email) && !nm.value.trim()){ hint.textContent = 'Already on the list'; return; }
+        try { await userAction('add_user', { email, name: nm.value.trim() }); draw(); $('uEmail')?.focus(); toast('Added'); } catch(err){ toast(err.message); }
+      };
+    }
   };
-  draw(); $('modal').classList.add('open'); setTimeout(() => $('uName')?.focus(), 50);
+  draw(); $('modal').classList.add('open'); setTimeout(() => $('uEmail')?.focus(), 50);
 }
 
 /* ============================== Image tab ============================== */
@@ -1469,6 +1600,9 @@ async function loadAll(){
     + ` · Metabase ${Object.values(S.sources).map(v => `<span title="${esc(v.name)}">${esc(v.card)}</span>`).join(' + ')} · `
     + Object.entries(S.sources).map(([s,v]) => `<b>${v.count.toLocaleString()}</b> ${s === 'warehouse' ? 'in warehouse' : 'retrieved'}`).join(' · ')
     + `<span id="matchInfo"></span> · pulled ${new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit', second:'2-digit' })} (${secs}s)`;
+  migrateUsers();
+  if (S.me && meUser() && meUser().active === false){ toast('Your access was turned off by an admin'); S.me = ''; store.set('wc_user', ''); }
+  drawUserChip();
   if (!S.source) S.source = 'warehouse';
   drawSource();
   run($('q').value);
@@ -1676,8 +1810,8 @@ function render(){
       ${ev ? `<td class="num">${money(g.ev)}</td><td class="num">${money(g.ev / g.n)}</td>` : ''}
       ${cost ? `<td class="num">${money(g.cost)}</td>` : ''}
       ${ev && cost ? `<td class="num">${g.cost ? (g.ev / g.cost).toFixed(2) + '×' : '—'}</td>` : ''}
-      ${S.source === 'retrieved' ? `<td class="fill"><input class="cell" data-fill="vendor" list="vendorList" value="${esc(g.vendor)}" title="${esc(g.by ? `Last edited by ${g.by}${g.at ? ' · ' + String(g.at).slice(0,10) : ''}` : '')}" placeholder="Type vendor" aria-label="Vendor for ${esc(g.k)}"></td>
-      <td class="fill"><input class="cell num" data-fill="sold_price" inputmode="decimal" title="${esc(g.by ? `Last edited by ${g.by}${g.at ? ' · ' + String(g.at).slice(0,10) : ''}` : '')}" value="${g.sold != null ? esc(money(g.sold)) : ''}" placeholder="$0" aria-label="Sold price for ${esc(g.k)}"></td>
+      ${S.source === 'retrieved' ? `<td class="fill"><input class="cell" data-fill="vendor" list="vendorList" value="${esc(g.vendor)}" title="${esc(g.by ? `Last edited by ${userLabel(g.by)}${g.at ? ' · ' + String(g.at).slice(0,10) : ''}` : '')}" placeholder="Type vendor" aria-label="Vendor for ${esc(g.k)}"></td>
+      <td class="fill"><input class="cell num" data-fill="sold_price" inputmode="decimal" title="${esc(g.by ? `Last edited by ${userLabel(g.by)}${g.at ? ' · ' + String(g.at).slice(0,10) : ''}` : '')}" value="${g.sold != null ? esc(money(g.sold)) : ''}" placeholder="$0" aria-label="Sold price for ${esc(g.k)}"></td>
       ${cost ? `<td class="num pf">${g.sold != null ? profitHTML(g.sold - g.cost) : '—'}</td><td class="num sr">${g.sold != null && g.cost ? (g.sold / g.cost).toFixed(2) + '×' : '—'}</td>` : ''}` : ''}
     </tr>`).join('')}</tbody></table>
     <datalist id="vendorList">${vendors.map(v => `<option value="${esc(v)}">`).join('')}</datalist>
@@ -1772,6 +1906,7 @@ function bindFills(){
       const shown = inp.value;
       if (shown === inp.dataset.saved){ inp.classList.remove('bad'); return; }
       if (!S.me){ inp.value = inp.dataset.saved; toast('Pick who you are first'); openUsers(); return; }
+      if (meUser() && meUser().active === false){ inp.value = inp.dataset.saved; toast('Your access is turned off — ask an admin'); return; }
       inp.classList.remove('bad'); inp.classList.add('saving');
       try {
         await saveFill(S.source, S.groupCol, tr.dataset.group, field, value === '' ? null : value);
@@ -2043,7 +2178,7 @@ function openDetail(r, list, opts = {}){
   list = (list && list.length ? list : [r]);
   S.detail = { list, i: Math.max(0, list.indexOf(r)), changed:false, title: opts.title || '', strip: !!opts.strip };
   drawDetail();
-  $('modal').classList.remove('cmodal');
+  $('modal').classList.remove('cmodal', 'umodal');
   $('modal').classList.add('open', 'dmodal');
   setTimeout(() => $('dNext')?.focus(), 30);
 }
