@@ -6,6 +6,17 @@ Prompt search across Arena Club watches in the warehouse (Metabase 31879) and re
 ## Brand logos
 Badges in Totals by brand use `BRAND_LOGOS` (full-colour images) and `BRAND_LOGO_MASKS` (one-colour logos that follow the theme text colour) in public/index.html, keyed by brand name in lower case. Transparent PNGs are kept in `logos/` too. Brands without a logo show their initials.
 
+## Questions
+| Tab | Metabase question | Vercel variable |
+|---|---|---|
+| Warehouse | 48016 | `WAREHOUSE_CARD_ID` (default 48016) |
+| Retrieved | 47950 | `RETRIEVED_CARD_ID` (default 47950) |
+| All + Image | 31879 (all items) | `ALL_CARD_ID` (default 31879) |
+
+## Finding any watch (shipped/sold too)
+Warehouse (31879) and Retrieved (47950) are loaded in full. A reference pasted on the Image tab that isn't in either is looked up
+in Metabase directly. The lookup uses question **31879** (Items Search, searched by its Reference # filter) by default — set `LOOKUP_CARD_ID` only to use a different question. This finds shipped/sold watches and watches beyond the 5,000-row load.
+
 ## Weight and dimensions
 Add these columns to Metabase questions 31879 / 47950 to fill them: `WEIGHT_G` (grams), `HEIGHT_MM` (thickness), `WIDTH_MM`, `LENGTH_MM` (lug to lug). Other common names also work (WEIGHT, THICKNESS_MM, CASE_WIDTH_MM, LUG_TO_LUG_MM…). They show on cards (Size row), in the pop-up, in Columns and are searchable.
 
@@ -14,7 +25,7 @@ Add these columns to Metabase questions 31879 / 47950 to fill them: `WEIGHT_G` (
 2. Env vars (plus `DATABASE_URL` from Neon, see below): `METABASE_HOST`, `METABASE_API_KEY`, optional `WAREHOUSE_CARD_ID` (default 31879) and `RETRIEVED_CARD_ID` (default 47950).
 
 Use the Warehouse / Retrieved / All switch to pick which watches you're searching. In All, `source:retrieved` and `group:source` work in the prompt. On hand only applies to warehouse watches.
-3. If either question has a `LIMIT` in its SQL, remove it so totals include every watch.
+3. Every watch is loaded: the app runs each question without its final `LIMIT` (e.g. `LIMIT 5000`) and gzips the data. If a question's limit is somewhere else in the SQL, remove it in Metabase.
 
 ## Vendor and Sold Price (Neon)
 On the Retrieved tab only, the "Totals by" table has two typed columns, Vendor and Sold Price, plus Profit (sold − cost) and Sold ÷ cost.

@@ -282,6 +282,14 @@ button.usw:hover i{box-shadow:0 0 0 1px var(--green),0 0 10px var(--glow)}
 .subtabs button.on{background:var(--green);color:var(--on-green)}
 .isum{font-size:13px;color:var(--muted)}
 .isum b{color:var(--text)}
+.inote{width:100%;font-size:12.5px;color:var(--amber);margin-top:2px}
+.idiag{margin:-4px 0 10px;font-size:12.5px;color:var(--muted)}
+.idiag summary{cursor:pointer}
+.idiag summary:hover{color:var(--green)}
+.idiag b{color:var(--text)}
+.idiagt{margin-top:8px;border-collapse:collapse;font-size:12.5px}
+.idiagt th,.idiagt td{padding:4px 12px 4px 0;text-align:left;font-size:12.5px!important;font-weight:500;color:var(--muted)}
+.idiagt td{color:var(--text)}
 .imiss{display:inline-flex;gap:7px;align-items:center;font-size:13px;cursor:pointer;margin-left:auto}
 .imiss input{accent-color:var(--green)}
 .yes{color:var(--green);font-weight:700;white-space:nowrap}
@@ -681,7 +689,8 @@ const ALIASES = {
   length:['LENGTH_MM','LENGTH','LUG_TO_LUG_MM','LUG_TO_LUG'], lug:'length'
 };
 const EXACT_BY_DEFAULT = new Set(['ref','ac','po','order']);
-const SOURCE_NAME = { warehouse:'Warehouse', retrieved:'Retrieved' };
+const SOURCE_NAME = { warehouse:'Warehouse', retrieved:'Retrieved', all:'All' };
+const SOURCES = ['warehouse', 'retrieved', 'all'];
 const SERVER_TAG = { ref:'reference_number', ac:'ac_number', po:'po_number', order:'order_number', model:'model' };
 const STOP = new Set(['show','me','find','all','the','a','an','with','and','of','for','watch','watches','that','are','have','we','in','list','get']);
 const EXAMPLES = ['rolex steel bracelet white dial','all rolexes $400-$5000','weight 120-160 rolex','order 20575379','ac 4220749 3302372','ref 14000','rolex omega black dial','under $1,000 group:brand','condition excellent box original'];
@@ -750,6 +759,20 @@ function indexRow(o){
   return o;
 }
 function addCols(cols){ cols.forEach(c => { if (!S.cols.includes(c)) S.cols.push(c); }); }
+// The warehouse and retrieved questions may name the same thing differently (IMAGE_URL vs PHOTO_URL,
+// REFERENCE vs REFERENCE_NUMBER…). Copy each value into the one column the app reads, so a shipped/retrieved
+// watch with a photo still counts as having a photo, and refs/dials group across both questions.
+const IMG_COL_RE = /IMAGE|PHOTO|THUMB|PICTURE|(^|_)IMG(_|$)/;
+const isUrl = v => /^(https?:|data:image)/.test(String(v || '').trim());
+function unifyRows(rows){
+  const keys = Object.keys(ALIASES).filter(k => Array.isArray(ALIASES[k]));
+  const plan = keys.map(k => { const main = colFor(k); return main ? [main, ALIASES[k].filter(c => c !== main && S.cols.includes(c))] : null; }).filter(x => x && x[1].length);
+  const imgCols = S.cols.filter(c => IMG_COL_RE.test(c) && c !== S.imgCol);
+  rows.forEach(r => {
+    plan.forEach(([main, others]) => { if (r[main] == null || r[main] === ''){ const c = others.find(o => r[o] != null && r[o] !== ''); if (c) r[main] = r[c]; } });
+    if (S.imgCol && !isUrl(r[S.imgCol])){ const c = imgCols.find(o => isUrl(r[o])); if (c) r[S.imgCol] = String(r[c]).trim(); }
+  });
+}
 function toObjects(j, source){
   const cols = j.cols;
   addCols(cols.concat('SOURCE'));
@@ -1095,15 +1118,15 @@ function demoImg(dial, bracelet){
   return demoImgCache[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
 function demoRows(source){
-  let seed = source === 'retrieved' ? 99 : 7;
+  let seed = source === 'retrieved' ? 99 : source === 'sold' ? 313 : 7;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const pick = a => a[Math.floor(rnd() * a.length)];
-  const n = source === 'retrieved' ? 84 : 236;
+  const n = source === 'retrieved' ? 84 : source === 'sold' ? 60 : 236;
   const rows = [];
   for (let i = 0; i < n; i++){
     const [brand, model, ref, dials, size, mat, brMat, brCol, gender, base, mov] = pick(DEMO_CAT);
     const dial = pick(dials);
-    const ac = (source === 'retrieved' ? 3300000 : 4200000) + Math.floor(rnd() * 99999);
+    const ac = (source === 'retrieved' ? 3300000 : source === 'sold' ? 3100000 : 4200000) + Math.floor(rnd() * 99999);
     const cond = pick(DEMO_CONDITION);
     const ev = Math.round(base * (0.82 + rnd() * 0.36) * (cond === 'unworn' ? 1.12 : cond === 'good' ? 0.9 : 1) / 10) * 10;
     const cost = Math.round(ev * (0.68 + rnd() * 0.3) / 5) * 5;
@@ -1119,8 +1142,14 @@ function demoRows(source){
 }
 async function demoApi(params, source){
   await new Promise(r => setTimeout(r, 250));
-  const rows = demoRows(source);
-  return { card: source === 'retrieved' ? '47950' : '31879', name: source === 'retrieved' ? 'Retrieved items (demo)' : 'Warehouse watches (demo)', source, via:'demo', filters:[], count: rows.length, truncated:false, cols: DEMO_COLS, rows };
+  const sIdx = DEMO_COLS.indexOf('ITEM_STATUS');
+  const rows = source === 'all'
+    ? demoRows('warehouse').concat(demoRows('retrieved'), demoRows('sold').map(r => { r = [...r]; r[sIdx] = 'sold'; return r; }))
+    : demoRows(source);
+  const cols = source === 'retrieved' ? DEMO_COLS.map(c => c === 'IMAGE_URL' ? 'PHOTO_URL' : c === 'REFERENCE' ? 'REFERENCE_NUMBER' : c) : DEMO_COLS;
+  const card = { warehouse:'48016', retrieved:'47950', all:'31879' }[source];
+  const name = { warehouse:'Warehouse watches (demo)', retrieved:'Retrieved items (demo)', all:'All items (demo)' }[source];
+  return { card, name, source, via:'demo', filters:[], count: rows.length, truncated:false, cols, rows };
 }
 
 /* ============================== data ============================== */
@@ -1510,34 +1539,121 @@ async function boot(){
 
 /* ============================== Image tab ============================== */
 S.img = { input:'', view:'summary', missingOnly:false };
+// ---------- reference lookup (copy/paste friendly) ----------
+const acKey = r => { const c = colFor('ac'); return c && r[c] != null && r[c] !== '' ? 'ac:' + norm(r[c]) : 'row:' + r._s; };
+function imgPool(){
+  const n = S.all.length + (S.img.extra ? S.img.extra.length : 0);
+  if (S._pool && S._pool.n === n) return S._pool.rows;
+  const seen = new Set(), rows = [];
+  const add = r => { const k = acKey(r); if (!seen.has(k)){ seen.add(k); rows.push(r); } };
+  S.all.filter(r => r.SOURCE === 'all').forEach(add);
+  S.all.filter(r => r.SOURCE !== 'all').forEach(add);
+  (S.img.extra || []).forEach(add);
+  S._pool = { n, rows };
+  return rows;
+}
+// every column that can hold a reference number
+function refCols(){
+  const main = colFor('ref');
+  const extra = S.cols.filter(c => c !== main && /^(REFERENCE|REF|REFERENCE_NUMBER|REFERENCE_NO|REF_NUMBER|REF_NO|WATCH_REFERENCE|MODEL_NUMBER|MODEL_NO)$/.test(c));
+  return [main, ...extra].filter(Boolean);
+}
+// exact first, then "starts with" (126610 → 126610LN), then "contains" (M14000-0001 ↔ 14000).
+// Loose matches never split a number: 14000 won't match 140000 or 114000.
+function within(outer, inner){
+  if (inner.length < 4) return false;
+  let i = outer.indexOf(inner);
+  while (i !== -1){
+    const before = outer[i - 1], after = outer[i + inner.length];
+    if (!/[0-9]/.test(before || '') && !/[0-9]/.test(after || '')) return true;
+    i = outer.indexOf(inner, i + 1);
+  }
+  return false;
+}
+function matchRef(id){
+  const nv = norm(id); if (nv.length < 3) return null;
+  const raw = String(id).toUpperCase().replace(/\s+/g, '');
+  const cols = refCols(), pool = imgPool();
+  const tiers = [
+    (v) => v === nv,
+    (v) => (v.startsWith(nv) && /[a-z]/.test(v[nv.length] || '')) || (v.length >= 5 && nv.startsWith(v) && /[a-z]/.test(nv[v.length] || '')),
+    (v, rv) => within(raw, rv) || within(rv, raw)
+  ];
+  for (let t = 0; t < tiers.length; t++){
+    const use = t === 0 ? cols : cols.slice(0, 1);          // close matches only on the main Reference column
+    const rows = pool.filter(r => use.some(c => { const v = norm(r[c]); return v && tiers[t](v, String(r[c]).toUpperCase().replace(/\s+/g, '')); }));
+    if (rows.length) return { rows, how: ['exact', 'starts with', 'contains'][t], col: use.find(c => rows.some(r => norm(r[c]))) };
+  }
+  return null;
+}
+// one reference per line (or separated by commas, semicolons or tabs — straight from Excel/Sheets)
 function parseIdList(text){
-  const words = String(text || '').replace(/\b(?:reference|ref|8ac|ac|number|num|no)\b\.?|#/gi, ' ').split(/[\s,;]+/)
-    .map(s => s.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '')).filter(Boolean);
-  const seen = new Set(), out = [];
-  words.forEach(w => { const k = norm(w); if (k && !seen.has(k)){ seen.add(k); out.push(w); } });
+  const lines = String(text || '').replace(/\u00a0/g, ' ').split(/[\r\n,;\t]+/)
+    .map(l => l.replace(/\b(?:reference|ref|8ac|ac|number|num|no)\b\.?:?|#/gi, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const out = [], seen = new Set();
+  const add = w => { w = w.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, ''); const k = norm(w); if (k && !seen.has(k)){ seen.add(k); out.push(w); } };
+  lines.forEach(l => {
+    if (!/\s/.test(l) || matchRef(l)) add(l);            // keep "01 733 7766 4135" whole when it is a real ref
+    else l.split(' ').forEach(add);                       // otherwise several refs on one line
+  });
   return out;
 }
-function hasImg(r){ return !!(S.imgCol && r[S.imgCol] && String(r[S.imgCol]).trim()); }
+function hasImg(r){ return (S.imgCol && isUrl(r[S.imgCol])) || S.cols.some(c => IMG_COL_RE.test(c) && isUrl(r[c])); }
 // same ref + same dial colour = a match: one photo covers every watch of that ref/dial
 const matchKey = r => norm(r[colFor('ref')]) + '|' + lc(r[colFor('dial')]);
 function coverSet(){
-  if (S._cover && S._cover.n === S.all.length) return S._cover.set;
-  const set = new Set(); S.all.forEach(r => { if (hasImg(r) && norm(r[colFor('ref')])) set.add(matchKey(r)); });
-  S._cover = { n: S.all.length, set }; return set;
+  const pool = imgPool();
+  if (S._cover && S._cover.n === pool.length) return S._cover.set;
+  const set = new Set(); pool.forEach(r => { if (hasImg(r) && norm(r[colFor('ref')])) set.add(matchKey(r)); });
+  S._cover = { n: pool.length, set }; return set;
 }
 function covered(r){ return hasImg(r) || (norm(r[colFor('ref')]) !== '' && coverSet().has(matchKey(r))); }
 const imgState = r => hasImg(r) ? '<span class="yes">✓ YES</span>' : covered(r) ? '<span class="yes" title="Another watch with the same ref and dial has a photo">✓ MATCH</span>' : '<span class="no">✗ NO</span>';
 function lookupIds(ids){
-  const ac = colFor('ac'), ref = colFor('ref'), order = colFor('order');
-  return ids.map(id => {
-    const nv = norm(id);
-    const by = (col, type) => col ? { type, rows: S.all.filter(r => norm(r[col]) === nv) } : { type, rows: [] };
-    for (const [col, type] of [[ref,'Ref'], [ac,'AC'], [order,'Order']]){
-      const m = by(col, type); if (m.rows.length) return { id, ...m };
+  const ac = colFor('ac'), order = colFor('order'), ref = colFor('ref'), pool = imgPool();
+  const out = [];
+  ids.forEach(id => {
+    const m = matchRef(id);
+    if (m){
+      // a loose match can hit several refs (14000 → 14000, 14000M): one row each
+      const groups = new Map();
+      m.rows.forEach(r => { const k = norm(r[ref]) || norm(id); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+      groups.forEach(rows => out.push({ id, type:'Ref', how:m.how, col:m.col, rows }));
+      return;
     }
-    return { id, type:null, rows:[] };
+    for (const [col, type] of [[ac,'AC'], [order,'Order']]){
+      if (!col) continue;
+      const rows = pool.filter(r => norm(r[col]) === norm(id));
+      if (rows.length){ out.push({ id, type, rows }); return; }
+    }
+    out.push({ id, type:null, rows:[] });
   });
+  return out;
 }
+// refs not in the loaded rows: ask Metabase directly — the warehouse/retrieved questions if they have a Reference
+// filter, plus the all-items lookup question (LOOKUP_CARD_ID) which also finds shipped/sold watches
+async function fetchMissingRefs(ids){
+  if (DEMO || !ids.length) return false;
+  S.img.tried = S.img.tried || new Set(); S.img.extra = S.img.extra || [];
+  const todo = ids.filter(id => !S.img.tried.has(norm(id))).slice(0, 40);
+  if (!todo.length) return false;
+  const srcs = Object.keys(S.sources).filter(s => S.sources[s].filters.has('reference_number'));
+  if (S.img.lookup !== 'off' && !srcs.includes('all')) srcs.push('lookup');
+  todo.forEach(id => S.img.tried.add(norm(id)));
+  const have = new Set(imgPool().map(acKey));
+  const jobs = todo.flatMap(id => srcs.map(s => api({ reference_number: id }, s).then(j => toObjects(j, s))));
+  const res = await Promise.allSettled(jobs);
+  let added = 0;
+  res.forEach(r => {
+    if (r.status === 'fulfilled'){ unifyRows(r.value); r.value.forEach(o => { const k = acKey(o); if (!have.has(k)){ have.add(k); S.img.extra.push(o); added++; } }); }
+    else if (/LOOKUP_CARD_ID|Reference filter/.test(r.reason && r.reason.message || '')){ S.img.lookup = 'off'; S.img.lookupWhy = r.reason.message; }
+  });
+  if (!res.some(r => r.status === 'rejected' && /LOOKUP_CARD_ID|Reference filter/.test(r.reason && r.reason.message || '')) && srcs.includes('lookup')) S.img.lookup = 'on';
+  S._cover = null;
+  S.img.checked = true;
+  return added > 0 || true;
+}
+
 const yesNo = ok => ok ? '<span class="yes">✓ YES</span>' : '<span class="no">✗ NO</span>';
 
 function renderImageTab(){
@@ -1547,6 +1663,10 @@ function renderImageTab(){
   const vars = res.filter(x => x.rows.length).flatMap(refVariants);
   const varYes = vars.filter(z => z.ok).length;
   const notFound = res.filter(x => !x.rows.length).length;
+  const loose = res.filter(x => x.how && x.how !== 'exact').length;
+  const capped = Object.entries(S.sources).filter(([, v]) => v.count >= 1000 && v.count % 1000 === 0).map(([s, v]) => `${SOURCE_NAME[s]} stops at exactly ${v.count.toLocaleString()} rows`);
+  const limitNote = capped.length && notFound ? `<div class="inote">${capped.join(' · ')} — probably a LIMIT in Metabase, so some refs may be missing.${Object.values(S.sources).some(v => v.filters.has('reference_number')) ? ' Missing refs are being checked in Metabase directly.' : ' Remove the LIMIT in the question (or add a reference_number filter) to find them.'}</div>` : '';
+  if (!refCols().length && S.loaded) $('note').textContent = 'No reference column found in the Metabase data — refs can’t be matched.';
   $('out').innerHTML = `
   <section class="imgtool">
     <div class="imghead">
@@ -1563,12 +1683,21 @@ function renderImageTab(){
         <button role="tab" data-iv="list" class="${S.img.view === 'list' ? 'on' : ''}">List</button>
         <button role="tab" data-iv="full" class="${S.img.view === 'full' ? 'on' : ''}">Full</button>
       </nav>
-      ${res.length ? `<div class="isum"><b>${res.length}</b> looked up · <b>${vars.length}</b> dial variants · <span class="yes">✓ ${varYes} have an image</span> · <span class="no">✗ ${vars.length - varYes} need an image</span>${notFound ? ` · <span class="no">${notFound} not found</span>` : ''}</div>` : ''}
+      ${res.length ? `<div class="isum"><b>${new Set(res.map(x => x.id)).size}</b> looked up · <b>${vars.length}</b> dial variants · <span class="yes">✓ ${varYes} have an image</span> · <span class="no">✗ ${vars.length - varYes} need an image</span>${notFound ? ` · <span class="no">${notFound} not found</span>` : ''}${loose ? ` · <span class="part" title="Matched because the stored ref starts with or contains what you pasted">${loose} close ${loose === 1 ? 'match' : 'matches'}</span>` : ''}</div>` : ''}
+      ${limitNote}
       ${S.img.view === 'list' && res.length ? `<label class="imiss"><input type="checkbox" id="imgMiss" ${S.img.missingOnly ? 'checked' : ''}> No image only</label><button class="btn sm" id="imgCsv">Export CSV</button>` : ''}
     </div>
-    <div id="imgOut">${!res.length ? '<div class="msg">Paste references above, then Look up. Checks every dial variant of each reference across warehouse and retrieved watches.</div>' : S.img.view === 'summary' ? imageSummary(res) : S.img.view === 'list' ? imageList(res) : imageFull(res)}</div>
+    ${res.length ? `<details class="idiag"><summary>How refs were matched</summary><div>Reference column${refCols().length > 1 ? 's' : ''} searched: <b>${esc(refCols().join(', ') || 'none found')}</b> · rows searched: <b>${imgPool().length.toLocaleString()}</b> (${Object.entries(S.sources).map(([s, v]) => `${SOURCE_NAME[s]} ${v.card}: ${v.count.toLocaleString()}`).join(' · ')}${S.img.extra && S.img.extra.length ? ` · ${S.img.extra.length} found by Metabase look-up` : ''})</div>
+      <table class="idiagt"><tr><th>Pasted</th><th>Matched</th><th>How</th><th>Watches</th></tr>${res.map(x => `<tr><td>${esc(x.id)}</td><td>${x.rows.length ? esc(String(x.rows[0][colFor('ref')] ?? '')) : '—'}</td><td>${x.rows.length ? esc(x.type === 'Ref' ? x.how : 'by ' + x.type) : '<span class="no">not found</span>'}</td><td>${x.rows.length}</td></tr>`).join('')}</table></details>` : ''}
+    <div id="imgOut">${!res.length ? '<div class="msg">Paste references above, then Look up. Checks every dial variant of each reference across all items (question 31879), warehouse and retrieved.</div>' : S.img.view === 'summary' ? imageSummary(res) : S.img.view === 'list' ? imageList(res) : imageFull(res)}</div>
   </section>`;
   const go = () => { S.img.input = $('imgIn').value; renderImageTab(); };
+  // anything not found locally: try Metabase's own reference filter, then redraw
+  const missing = res.filter(x => !x.rows.length).map(x => x.id);
+  if (missing.length && !S.img.fetching){
+    S.img.fetching = true;
+    fetchMissingRefs(missing).then(found => { S.img.fetching = false; if (found && S.source === 'image' && missing.some(id => !S.img.drawnAfter?.has(norm(id)))){ S.img.drawnAfter = new Set([...(S.img.drawnAfter || []), ...missing.map(norm)]); renderImageTab(); } }).catch(() => { S.img.fetching = false; });
+  }
   $('imgGo').onclick = go;
   $('imgIn').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go(); } });
   $('imgClear').onclick = () => { S.img.input = ''; renderImageTab(); $('imgIn').focus(); };
@@ -1604,10 +1733,16 @@ function dialSwatch(d){
 function refVariants(x){
   const ref = colFor('ref'), dial = colFor('dial');
   const refVal = x.rows[0] && x.rows[0][ref];
-  const pool = ref && norm(refVal) ? S.all.filter(r => norm(r[ref]) === norm(refVal)) : x.rows;
+  const pool = ref && norm(refVal) ? imgPool().filter(r => norm(r[ref]) === norm(refVal)) : x.rows;
   const m = new Map();
   pool.forEach(r => { const d = txt(r[dial]) || 'no dial colour'; if (!m.has(d)) m.set(d, []); m.get(d).push(r); });
   return [...m.entries()].map(([d, rows]) => ({ dial:d, rows, ok: rows.some(hasImg) }));
+}
+function notFoundWhere(){
+  if (DEMO) return 'in warehouse or retrieved';
+  if (S.img.fetching) return '<span class="part">— checking Metabase…</span>';
+  if (S.img.lookup === 'on' || S.sources.all) return 'in any Metabase question (all items, warehouse or retrieved)';
+  return `in warehouse or retrieved <span class="part">— ${esc(S.img.lookupWhy || 'All items question (31879) not loaded')}</span>`;
 }
 function imageSummary(res){
   const brand = colFor('brand'), model = colFor('model'), ref = colFor('ref');
@@ -1625,13 +1760,13 @@ function imageSummary(res){
   S.imgCells = [];
   const head = `<tr><th class="l">Ref</th><th class="l">Brand</th><th class="l">Model</th>${dials.map(d => `<th><i class="swd" style="${dialSwatch(d)}"></i>${esc(d)}</th>`).join('')}<th class="tot">Variants</th><th class="tot">✓ Image</th><th class="tot">✗ Need</th></tr>`;
   const body = res.map(x => {
-    if (!x.rows.length) return `<tr class="nf"><td class="l"><b>${esc(x.id)}</b></td><td class="l" colspan="${dials.length + 5}"><span class="r" style="font-weight:800">✗ Not found</span> in warehouse or retrieved</td></tr>`;
+    if (!x.rows.length) return `<tr class="nf"><td class="l"><b>${esc(x.id)}</b></td><td class="l" colspan="${dials.length + 5}"><span class="r" style="font-weight:800">✗ Not found</span> ${notFoundWhere()}</td></tr>`;
     const first = x.rows[0];
     const v = found.find(f => f.x === x).v;
     const yes = v.filter(z => z.ok).length, no = v.length - yes;
     const refName = first[ref] ?? x.id;
     const label = esc(refName);
-    const sub = x.type !== 'Ref' ? `<small class="acref">from ${x.type} ${esc(x.id)}</small>` : '';
+    const sub = x.type !== 'Ref' ? `<small class="acref">from ${x.type} ${esc(x.id)}</small>` : (x.how && x.how !== 'exact') ? `<small class="acref" style="color:var(--amber)">you pasted ${esc(x.id)} · close match</small>` : '';
     const cells = dials.map(d => {
       const z = v.find(q => q.dial === d);
       if (!z) return '<td class="e">—</td>';
@@ -1652,7 +1787,7 @@ function imageList(res){
       <td>${esc(r[brand] ?? '')}</td><td>${esc(r[model] ?? '')}</td><td>${esc(r[ref] ?? '')}</td>
       <td>${esc(txt(r[dial]) ?? '')}</td>
       <td>${esc(r[ac] ?? '')}${cpBtn(r[ac])}</td>
-      <td><span class="st ${r.SOURCE === 'retrieved' ? 'out' : ''}">${r.SOURCE}</span> ${esc(txt(r[status]) ?? '')}</td>
+      <td><span class="st ${r.SOURCE === 'warehouse' ? '' : 'out'}">${r.SOURCE === 'lookup' ? 'all' : r.SOURCE}</span> ${esc(txt(r[status]) ?? '')}</td>
       <td class="num">${ev ? money(num(r[ev])) : ''}</td>
       <td>${imgState(r)}</td></tr>`).join('');
   }).join('');
@@ -1704,11 +1839,11 @@ function addVendorName(v){
 async function loadAll(){
   const src = $('src'); src.className = 'src'; src.innerHTML = '<i></i>Watches: <b>Loading</b> from Metabase…';
   const t0 = performance.now();
-  $('out').innerHTML = '<div class="msg loading">Loading warehouse and retrieved watches</div>';
-  S.cols = []; S.all = []; S.sources = {};
-  const [res] = await Promise.all([Promise.allSettled(['warehouse','retrieved'].map(s => api({}, s))), loadFills()]);
+  $('out').innerHTML = '<div class="msg loading">Loading every watch</div>';
+  S.cols = []; S.all = []; S.sources = {}; S.noWarehouseQ = false;
+  const [res] = await Promise.all([Promise.allSettled(SOURCES.map(s => api({}, s))), loadFills()]);
   const notes = [];
-  ['warehouse','retrieved'].forEach((s, i) => {
+  SOURCES.forEach((s, i) => {
     const r = res[i];
     if (r.status === 'fulfilled'){
       const j = r.value;
@@ -1716,7 +1851,8 @@ async function loadAll(){
       S.sources[s] = { card:j.card, name:j.name, filters:new Set(j.filters || []), count:rows.length };
       S.all.push(...rows);
       if (j.truncated) notes.push(`${SOURCE_NAME[s]} returned exactly 2,000 rows, so totals may be cut off. Check question ${j.card} for a LIMIT.`);
-    } else notes.push(`${SOURCE_NAME[s]} didn't load: ${r.reason.message}`);
+    } else if (s === 'warehouse' && /not set yet/.test(r.reason.message)){ S.noWarehouseQ = true; notes.push('Warehouse question not set yet — the Warehouse tab shows on-hand watches from All for now.'); }
+    else notes.push(`${SOURCE_NAME[s]} didn't load: ${r.reason.message}`);
   });
   if (S.fillsOff) notes.push(`Vendor and Sold Price can't be saved yet: ${S.fillsOff}`);
   $('note').textContent = notes.join(' ');
@@ -1726,8 +1862,9 @@ async function loadAll(){
     return;
   }
   S.loaded = true;
-  S.imgCol = S.cols.find(c => /IMAGE|PHOTO|THUMB/.test(c) && S.all.some(r => /^(https?:|data:image)/.test(String(r[c] || ''))));
+  S.imgCol = S.cols.find(c => IMG_COL_RE.test(c) && S.all.some(r => /^(https?:|data:image)/.test(String(r[c] || ''))));
   S.urlCol = S.cols.find(c => /ITEM_URL|ADMIN_URL/.test(c)) || null;
+  unifyRows(S.all);
   setupVisible();
   applyUserCols();
   drawCols();
@@ -1735,7 +1872,7 @@ async function loadAll(){
   const secs = ((performance.now() - t0) / 1000).toFixed(1);
   src.innerHTML = '<i></i>Watches: ' + (DEMO ? '<span class="demo">Demo data</span>' : '<b>Live</b>')
     + ` · Metabase ${Object.values(S.sources).map(v => `<span title="${esc(v.name)}">${esc(v.card)}</span>`).join(' + ')} · `
-    + Object.entries(S.sources).map(([s,v]) => `<b>${v.count.toLocaleString()}</b> ${s === 'warehouse' ? 'in warehouse' : 'retrieved'}`).join(' · ')
+    + Object.entries(S.sources).map(([s,v]) => `<b>${v.count.toLocaleString()}</b> ${s === 'warehouse' ? 'in warehouse' : s === 'retrieved' ? 'retrieved' : 'all items'}`).join(' · ')
     + `<span id="matchInfo"></span> · pulled ${new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit', second:'2-digit' })} (${secs}s)`;
   migrateUsers();
   if (DEMO && meUser() && meUser().active === false){ signOut('Your access was turned off by an admin'); return; }
@@ -1745,14 +1882,26 @@ async function loadAll(){
   run($('q').value);
 }
 
+// which loaded rows make up each tab
+function tabSources(tab){
+  if (tab === 'all') return S.sources.all ? ['all'] : ['warehouse', 'retrieved'];
+  if (tab === 'warehouse' && !S.sources.warehouse) return ['all'];
+  return [tab];
+}
+function tabRows(tab){
+  const srcs = tabSources(tab);
+  let rows = S.all.filter(r => srcs.includes(r.SOURCE));
+  if (tab === 'warehouse' && !S.sources.warehouse){ const st = colFor('status'), out = new Set(OUT_STATUSES.concat(['retrieved'])); rows = rows.filter(r => !out.has(lc(r[st]))); }
+  return rows;
+}
 function drawSource(){
   $('srcSeg').querySelectorAll('[data-src]').forEach(b => { const on = b.dataset.src === S.source; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-  const cnt = { warehouse: S.sources.warehouse?.count, retrieved: S.sources.retrieved?.count };
-  cnt.all = (cnt.warehouse || 0) + (cnt.retrieved || 0);
+  const cnt = { warehouse: S.sources.warehouse ? S.sources.warehouse.count : (S.loaded ? tabRows('warehouse').length : null), retrieved: S.sources.retrieved?.count };
+  cnt.all = S.sources.all ? S.sources.all.count : (cnt.warehouse || 0) + (cnt.retrieved || 0);
   $('srcSeg').querySelectorAll('[data-count]').forEach(el => { const n = cnt[el.dataset.count]; el.textContent = n == null ? '' : n.toLocaleString(); });
   $('searchUI').hidden = S.source === 'image';
-  const lab = $('onhandLab'); lab.style.opacity = S.source === 'retrieved' ? .4 : 1;
-  lab.title = S.source === 'retrieved' ? 'Applies to warehouse watches only' : '';
+  const lab = $('onhandLab'); lab.style.opacity = S.source === 'warehouse' ? 1 : .4;
+  lab.title = S.source === 'warehouse' ? '' : 'Applies to the Warehouse tab only';
 }
 
 function serverParams(p, source){
@@ -1781,8 +1930,8 @@ async function run(raw){
   history.replaceState(null, '', q ? '?q=' + encodeURIComponent(q) : location.pathname);
   if (q) remember(q);
 
-  const active = S.source === 'all' ? ['warehouse','retrieved'] : [S.source];
-  let base = S.all.filter(r => active.includes(r.SOURCE));
+  const active = tabSources(S.source);
+  let base = tabRows(S.source);
   const jobs = active.map(s => [s, serverParams(p, s)]).filter(([, prm]) => Object.keys(prm).length);
   if (jobs.length){
     $('out').insertAdjacentHTML('afterbegin', '<div class="msg loading" id="narrow">Checking Metabase</div>');
@@ -1790,7 +1939,7 @@ async function run(raw){
     const res = await Promise.allSettled(jobs.map(([s, prm]) => api(prm, s).then(j => toObjects(j, s))));
     if (id !== runId) return;
     res.forEach((r, i) => {
-      if (r.status === 'fulfilled') r.value.forEach(o => { if (!seen.has(keyOf(o))){ seen.add(keyOf(o)); base.push(o); } });
+      if (r.status === 'fulfilled'){ unifyRows(r.value); r.value.forEach(o => { if (!seen.has(keyOf(o))){ seen.add(keyOf(o)); base.push(o); } }); }
       else $('note').textContent = `${SOURCE_NAME[jobs[i][0]]} filter failed (${r.reason.message}); searched the loaded watches instead.`;
     });
   }
@@ -1806,7 +1955,7 @@ function apply(){
   const hasStatus = p.filters.some(f => f.col === statusCol);
   const onhand = $('onhand').checked && statusCol && !hasStatus;
   const out = new Set(OUT_STATUSES);
-  S.filtered = S.rows.filter(r => (!onhand || r.SOURCE === 'retrieved' || !out.has(lc(r[statusCol]))) && p.filters.every(f => test(r, f)));
+  S.filtered = S.rows.filter(r => (!onhand || S.source !== 'warehouse' || !out.has(lc(r[statusCol]))) && p.filters.every(f => test(r, f)));
   render();
 }
 
