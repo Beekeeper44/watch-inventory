@@ -17,6 +17,9 @@ Badges in Totals by brand use `BRAND_LOGOS` (full-colour images) and `BRAND_LOGO
 Warehouse (31879) and Retrieved (47950) are loaded in full. A reference pasted on the Image tab that isn't in either is looked up
 in Metabase directly. The lookup uses question **31879** (Items Search, searched by its Reference # filter) by default — set `LOOKUP_CARD_ID` only to use a different question. This finds shipped/sold watches and watches beyond the 5,000-row load.
 
+## Bin and slot
+Columns named BIN / SLOT (or BIN_NAME, BIN_CODE, SLOT_NUMBER, POSITION…) in question 48016 are picked up automatically: they appear in the List table once (after Item Status), in Columns → Status & location, on cards (Location row), in the watch pop-up, and in search (`bin w-12`, `slot 4`, `group:bin`).
+
 ## Weight and dimensions
 Add these columns to Metabase questions 31879 / 47950 to fill them: `WEIGHT_G` (grams), `HEIGHT_MM` (thickness), `WIDTH_MM`, `LENGTH_MM` (lug to lug). Other common names also work (WEIGHT, THICKNESS_MM, CASE_WIDTH_MM, LUG_TO_LUG_MM…). They show on cards (Size row), in the pop-up, in Columns and are searchable.
 

@@ -117,6 +117,20 @@ export default async function handler(req, res) {
     }
     return res.status(200).end(body);
   };
+  const runDataset = async q => {
+    const tries = [
+      { headers: { 'x-api-key': key, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ query: JSON.stringify(q), format_rows: 'false' }) },
+      { headers: { 'x-api-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, format_rows: false, pivot_results: false }) }
+    ];
+    let last = { status: 0, j: null };
+    for (const t of tries) {
+      const r = await fetch(`${host}/api/dataset/json`, { method: 'POST', ...t });
+      const text = await r.text(); let j = null; try { j = JSON.parse(text); } catch {}
+      if (r.ok && Array.isArray(j)) return { ok: true, j };
+      last = { status: r.status, j };
+    }
+    return { ok: false, ...last };
+  };
   const fromObjects = j => { const keys = j.length ? Object.keys(j[0]) : []; return [keys.map(normKey), j.map(o => keys.map(k => o[k]))]; };
 
   // 0) Every row: run the question's own query without its row cap (SQL "LIMIT 5000" / "FETCH FIRST n ROWS" /
@@ -154,24 +168,14 @@ export default async function handler(req, res) {
       }
       if (changed || wanted) {
         q.parameters = parameters;
-        const r = await fetch(`${host}/api/dataset/json`, {
-          method: 'POST',
-          headers: { 'x-api-key': key, 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ query: JSON.stringify(q), format_rows: 'false' })
-        });
-        let text = await r.text();
-        let j = null; try { j = JSON.parse(text); } catch {}
+        let ds = await runDataset(q);
+        let j = ds.ok ? ds.j : null;
         let localFilter = false;
         // the question rejected our filter value: run it unfiltered and filter the references here instead
-        if (!(r.ok && Array.isArray(j)) && wanted && parameters.length) {
+        if (!Array.isArray(j) && wanted && parameters.length) {
           q.parameters = [];
-          const r2 = await fetch(`${host}/api/dataset/json`, {
-            method: 'POST',
-            headers: { 'x-api-key': key, 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ query: JSON.stringify(q), format_rows: 'false' })
-          });
-          text = await r2.text(); try { j = JSON.parse(text); } catch { j = null; }
-          if (r2.ok && Array.isArray(j)) localFilter = true;
+          ds = await runDataset(q);
+          if (ds.ok){ j = ds.j; localFilter = true; }
         }
         if (Array.isArray(j)) {
           let [cols, rows] = fromObjects(j);
@@ -184,7 +188,7 @@ export default async function handler(req, res) {
           }
           return send(cols, rows, 'export-all');
         }
-        why = `full export not allowed (${r.status}${j && j.error ? ': ' + String(j.error).slice(0, 120) : ''}) — showing the question as saved`;
+        why = `Metabase won't run it without the limit (${ds.status}${ds.j && (ds.j.error || ds.j.message) ? ': ' + String(ds.j.error || ds.j.message).slice(0, 120) : ''}) — remove the row limit in the question, or give the API key native query access`;
       } else why = 'no row limit found in the question';
     } catch (e) { why = `full export failed: ${e.message}`; }
   }

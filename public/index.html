@@ -682,7 +682,7 @@ const ALIASES = {
   condition:['CONDITION','ITEM_CONDITION'],
   box:['BOX','HAS_BOX','BOX_TYPE'], papers:['PAPERS','HAS_PAPERS','PAPERS_TYPE'],
   movement:['MOVEMENT','MOVEMENT_TYPE'], gender:['GENDER'],
-  tag:['TAG','TAGS','TAG_NAME','TAG_NAMES'], bin:['BIN','BIN_NAME','BIN_LABEL'], vault:['VAULT','VAULT_NAME'], source:['SOURCE'],
+  tag:['TAG','TAGS','TAG_NAME','TAG_NAMES'], bin:['BIN','BIN_NAME','BIN_LABEL','BIN_CODE','BIN_ID','BIN_NUMBER','LOCATION_BIN'], slot:['SLOT','SLOT_NAME','SLOT_NUMBER','SLOT_ID','SLOT_LABEL','BIN_SLOT','POSITION'], vault:['VAULT','VAULT_NAME'], source:['SOURCE'],
   weight:['WEIGHT_G','WEIGHT_GRAMS','WEIGHT','WEIGHT_OZ','WEIGHT_LBS'], grams:'weight',
   height:['HEIGHT_MM','HEIGHT','THICKNESS_MM','THICKNESS','CASE_THICKNESS_MM'], thickness:'height',
   width:['WIDTH_MM','WIDTH','CASE_WIDTH_MM','CASE_WIDTH'],
@@ -695,7 +695,7 @@ const SERVER_TAG = { ref:'reference_number', ac:'ac_number', po:'po_number', ord
 const STOP = new Set(['show','me','find','all','the','a','an','with','and','of','for','watch','watches','that','are','have','we','in','list','get']);
 const EXAMPLES = ['rolex steel bracelet white dial','all rolexes $400-$5000','weight 120-160 rolex','order 20575379','ac 4220749 3302372','ref 14000','rolex omega black dial','under $1,000 group:brand','condition excellent box original'];
 const PAGE = { cards:60, table:300 };
-const DEFAULT_VISIBLE = ['IMAGE','AC','BRAND','MODEL','REF','DIAL','STATUS','EV','COST','PO'];
+const DEFAULT_VISIBLE = ['IMAGE','AC','BRAND','MODEL','REF','DIAL','STATUS','BIN','SLOT','EV','COST','PO'];
 
 /* ============================== state ============================== */
 const $ = id => document.getElementById(id);
@@ -780,8 +780,8 @@ function toObjects(j, source){
 }
 
 /* ============================== prompt parser ============================== */
-const FIELD_WORDS = 'ref|reference|8ac|ac|po|order|brand|model|status|tag|bin|condition|gender|movement|source|vault';
-const ID_FIELDS = new Set(['ref','ac','po','order']);
+const FIELD_WORDS = 'ref|reference|8ac|ac|po|order|brand|model|status|tag|bin|slot|condition|gender|movement|source|vault';
+const ID_FIELDS = new Set(['ref','ac','po','order','slot']);
 // watch parts → the columns that describe them
 const PART_WORDS = { bracelet:['BRACELET','STRAP','BAND'], dial:['DIAL'], case:['CASE'], bezel:['BEZEL'], movement:['MOVEMENT','CALIBER','CALIBRE'], crystal:['CRYSTAL','GLASS'], hands:['HANDS'] };
 function partKey(word){
@@ -1046,7 +1046,7 @@ function describe(f){
 
 /* ============================== demo data ============================== */
 const DEMO = window.__DEMO__ === true || new URLSearchParams(location.search).has('demo');
-const DEMO_COLS = ['AC_NUMBER','ITEM_STATUS','ESTIMATED_VALUE','PURCHASE_COST','BRAND_NAME','MODEL','REFERENCE','DIAL_COLOR','MOVEMENT','CASE_SIZE','CASE_MATERIAL','BRACELET_MATERIAL','BRACELET_COLOR','GENDER','CONDITION','BOX','PAPERS','TAG','PO_NUMBER','ORDER_NUMBER','BIN','IMAGE_URL','ITEM_URL','WEIGHT_G','HEIGHT_MM','WIDTH_MM','LENGTH_MM','DIAL_STYLE','BRACELET_TYPE'];
+const DEMO_COLS = ['AC_NUMBER','ITEM_STATUS','ESTIMATED_VALUE','PURCHASE_COST','BRAND_NAME','MODEL','REFERENCE','DIAL_COLOR','MOVEMENT','CASE_SIZE','CASE_MATERIAL','BRACELET_MATERIAL','BRACELET_COLOR','GENDER','CONDITION','BOX','PAPERS','TAG','PO_NUMBER','ORDER_NUMBER','BIN','IMAGE_URL','ITEM_URL','WEIGHT_G','HEIGHT_MM','WIDTH_MM','LENGTH_MM','DIAL_STYLE','BRACELET_TYPE','SLOT'];
 const DEMO_DIALS = { pink:'#c98f7e', black:'#141414', blue:'#1f4fa3', white:'#efefea', silver:'#c4c8cc', green:'#1f6b3a', grey:'#5f656b', champagne:'#d8c08a', brown:'#5a3a22' };
 const DEMO_CAT = [
   ['Rolex','Airking','14000',['pink','black','blue','silver'],34,'steel','steel','silver','male',4600,'automatic'],
@@ -1132,11 +1132,12 @@ function demoRows(source){
     const cost = Math.round(ev * (0.68 + rnd() * 0.3) / 5) * 5;
     rows.push([ac, pick(source === 'retrieved' ? DEMO_STATUS_R : DEMO_STATUS_W), rnd() < 0.04 ? null : ev, cost,
       brand, model, ref, dial, mov, size, mat, brMat, brCol, gender, cond, pick(DEMO_BOX), pick(DEMO_PAPERS), pick(DEMO_TAGS),
-      pick([4412, 4518, 4645, 4710, 4802]), 15700000 + Math.floor(rnd() * 5000000), source === 'retrieved' ? null : `#2 Davos · W-${String(1 + Math.floor(rnd() * 40)).padStart(2,'0')}`,
+      pick([4412, 4518, 4645, 4710, 4802]), 15700000 + Math.floor(rnd() * 5000000), source === 'retrieved' ? null : `W-${String(1 + Math.floor(rnd() * 40)).padStart(2,'0')}`,
       (DEMO_NO_PHOTO.has(ref + '|' + dial) || rnd() < 0.12) ? null : demoImg(dial, brMat), `https://admin.arenaclub.com/watches/${ac}`,
       Math.round((brMat === 'leather' ? 40 : 75) + size * 1.6 + rnd() * 25), Math.round((9 + rnd() * 6) * 10) / 10, size, Math.round(size * (1.14 + rnd() * 0.1) * 10) / 10,
       pick(brand === 'Richard Mille' ? ['skeleton'] : ['index','index','arabic','roman','index & arabic']),
-      brMat === 'steel' ? pick(brand === 'Rolex' ? ['oyster','oyster','jubilee'] : ['link','link','mesh']) : brMat === 'leather' ? 'leather strap' : brMat + ' strap']);
+      brMat === 'steel' ? pick(brand === 'Rolex' ? ['oyster','oyster','jubilee'] : ['link','link','mesh']) : brMat === 'leather' ? 'leather strap' : brMat + ' strap',
+      source === 'retrieved' ? null : String(1 + Math.floor(rnd() * 24))]);
   }
   return rows;
 }
@@ -1281,7 +1282,7 @@ const COL_SECTIONS = [
   ['Value',      ['ev','cost']],
   ['Specs',      ['movement','size','case','bracelet','braceletcolor','condition','box','papers']],
   ['Size & weight', ['weight','height','width','length']],
-  ['Status & location', ['status','source','bin','vault','tag']],
+  ['Status & location', ['status','source','bin','slot','vault','tag']],
   ['Orders',     ['po','order']]
 ];
 function colSection(c){
@@ -1296,7 +1297,7 @@ function openColumns(){
   const pickable = S.cols.filter(c => c !== S.urlCol);
   let order = S.visible.filter(c => pickable.includes(c));
   let q = '';
-  const defaults = () => { const map = { IMAGE:S.imgCol, AC:colFor('ac'), BRAND:colFor('brand'), MODEL:colFor('model'), REF:colFor('ref'), DIAL:colFor('dial'), STATUS:colFor('status'), EV:colFor('ev'), COST:colFor('cost'), PO:colFor('po') }; return DEFAULT_VISIBLE.map(k => map[k]).filter(Boolean); };
+  const defaults = () => { const map = { IMAGE:S.imgCol, AC:colFor('ac'), BRAND:colFor('brand'), MODEL:colFor('model'), REF:colFor('ref'), DIAL:colFor('dial'), STATUS:colFor('status'), BIN:colFor('bin'), SLOT:colFor('slot'), EV:colFor('ev'), COST:colFor('cost'), PO:colFor('po') }; return DEFAULT_VISIBLE.map(k => map[k]).filter(Boolean); };
   const match = c => !q || norm(colTitle(c)).includes(norm(q)) || norm(c).includes(norm(q));
   let first = true;
   const draw = (keepFocus) => {
@@ -1871,6 +1872,7 @@ async function loadAll(){
   unifyRows(S.all);
   setupVisible();
   applyUserCols();
+  showNewLocationCols();
   drawCols();
   src.className = 'src ok';
   const secs = ((performance.now() - t0) / 1000).toFixed(1);
@@ -1902,7 +1904,12 @@ function drawSource(){
   $('srcSeg').querySelectorAll('[data-src]').forEach(b => { const on = b.dataset.src === S.source; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   const cnt = { warehouse: S.sources.warehouse ? S.sources.warehouse.count : (S.loaded ? tabRows('warehouse').length : null), retrieved: S.sources.retrieved?.count };
   cnt.all = S.sources.all ? S.sources.all.count : (cnt.warehouse || 0) + (cnt.retrieved || 0);
-  $('srcSeg').querySelectorAll('[data-count]').forEach(el => { const n = cnt[el.dataset.count]; el.textContent = n == null ? '' : n.toLocaleString(); });
+  $('srcSeg').querySelectorAll('[data-count]').forEach(el => {
+    const k = el.dataset.count, n = cnt[k], s = S.sources[k];
+    const capped = s && s.count >= 1000 && s.count % 1000 === 0 && s.via !== 'export-all' && s.via !== 'demo';
+    el.textContent = n == null ? '' : n.toLocaleString() + (capped ? '+' : '');
+    el.title = capped ? `Question ${s.card} stops at ${s.count.toLocaleString()} rows${s.note ? ' — ' + s.note : ''}` : '';
+  });
   $('searchUI').hidden = S.source === 'image';
   const lab = $('onhandLab'); lab.style.opacity = S.source === 'warehouse' ? 1 : .4;
   lab.title = S.source === 'warehouse' ? '' : 'Applies to the Warehouse tab only';
@@ -1967,10 +1974,24 @@ function apply(){
 function setupVisible(){
   const saved = store.get('wc_visible', null);
   if (saved && saved.some(c => S.cols.includes(c))) { S.visible = saved.filter(c => S.cols.includes(c)); return; }
-  const map = { IMAGE:S.imgCol, AC:colFor('ac'), BRAND:colFor('brand'), MODEL:colFor('model'), REF:colFor('ref'), DIAL:colFor('dial'), STATUS:colFor('status'), EV:colFor('ev'), COST:colFor('cost'), PO:colFor('po') };
+  const map = { IMAGE:S.imgCol, AC:colFor('ac'), BRAND:colFor('brand'), MODEL:colFor('model'), REF:colFor('ref'), DIAL:colFor('dial'), STATUS:colFor('status'), BIN:colFor('bin'), SLOT:colFor('slot'), EV:colFor('ev'), COST:colFor('cost'), PO:colFor('po') };
   S.visible = DEFAULT_VISIBLE.map(k => map[k]).filter(Boolean);
   if (S.visible.length < 4) S.visible = S.cols.slice(0, 10);
   S.groupCol = S.groupCol || colFor('brand') || S.cols[0];
+}
+// new location columns (Bin, Slot) join everyone's table once, right after Item Status
+function showNewLocationCols(){
+  const seen = new Set(store.get('wc_seen_cols', []));
+  let changed = false;
+  ['bin', 'slot'].map(colFor).filter(Boolean).forEach(c => {
+    if (seen.has(c)) return;
+    seen.add(c); changed = true;
+    if (!S.visible.includes(c)){
+      const after = S.visible.indexOf(colFor('slot') === c && S.visible.includes(colFor('bin')) ? colFor('bin') : colFor('status'));
+      S.visible.splice(after >= 0 ? after + 1 : S.visible.length, 0, c);
+    }
+  });
+  if (changed) store.set('wc_seen_cols', [...seen]);
 }
 
 function drawCols(){
@@ -2049,13 +2070,18 @@ function render(){
   S.brows = brows;
 
   // sort rows
+  // default: Bin lowest → highest (then Slot), when the data has a Bin column; otherwise EV high → low
+  const binC = colFor('bin'), slotC = colFor('slot');
+  if (!S.sortCol){ S.sortCol = binC && S.all.some(r => r[binC] != null && r[binC] !== '') ? binC : ev; S.sortDir = S.sortCol === binC ? 1 : -1; }
   const sc = S.sortCol && S.cols.includes(S.sortCol) ? S.sortCol : ev;
-  const sorted = sc ? [...brows].sort((a,b) => {
-    const x = a[sc], y = b[sc], nx = num(x), ny = num(y);
-    if (nx != null && ny != null) return (nx - ny) * S.sortDir;
-    if (x == null || x === '') return 1; if (y == null || y === '') return -1;
-    return String(x).localeCompare(String(y)) * S.sortDir;
-  }) : brows;
+  const cmp = (x, y, dir) => {
+    const ex = x == null || x === '', ey = y == null || y === '';
+    if (ex || ey) return ex && ey ? 0 : ex ? 1 : -1;             // blanks always last
+    const nx = num(x), ny = num(y);
+    if (nx != null && ny != null) return (nx - ny) * dir;
+    return String(x).localeCompare(String(y), undefined, { numeric:true, sensitivity:'base' }) * dir;   // W-2 before W-10
+  };
+  const sorted = sc ? [...brows].sort((a,b) => cmp(a[sc], b[sc], S.sortDir) || (sc === binC && slotC ? cmp(a[slotC], b[slotC], 1) : 0)) : brows;
   const view = S.view || (S.view = store.get('wc_view', 'cards'));
   if (!S.section) S.section = store.get('wc_section', 'totals');
   const shownN = S.pages * PAGE[view];
@@ -2330,7 +2356,7 @@ function bind(page){
   }));
   out.querySelectorAll('[data-sort]').forEach(th => th.addEventListener('click', () => {
     const c = th.dataset.sort;
-    if (S.sortCol === c || (!S.sortCol && c === colFor('ev'))) S.sortDir *= -1; else { S.sortCol = c; S.sortDir = isMoneyCol(c) ? -1 : 1; }
+    if (S.sortCol === c) S.sortDir *= -1; else { S.sortCol = c; S.sortDir = isMoneyCol(c) ? -1 : 1; }
     S.sortCol = c; render();
   }));
   $('colBtn')?.addEventListener('click', openColumns);
@@ -2372,7 +2398,7 @@ function bind(page){
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && el.value){ e.stopPropagation(); el.value = ''; el.dispatchEvent(new Event('input')); } });
   });
   $('rqEvClr')?.addEventListener('click', () => { S.rq.min = ''; S.rq.max = ''; S.pages = 1; render(); });
-  $('dirBtn')?.addEventListener('click', () => { S.sortCol = S.sortCol || colFor('ev'); S.sortDir *= -1; render(); });
+  $('dirBtn')?.addEventListener('click', () => { S.sortDir *= -1; render(); });
   out.querySelectorAll('[data-info]').forEach(b => b.addEventListener('click', () => openDetail(page[+b.dataset.info], page)));
   out.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => {
     const k = keyOf(page[+b.dataset.pick]);
@@ -2412,6 +2438,7 @@ function cardHTML(r, i){
     ['Condition', txt(val(r,'condition'))],
     ['Box', txt(val(r,'box'))],
     ['Papers', txt(val(r,'papers'))],
+    ['Location', [val(r,'bin') != null ? 'Bin ' + val(r,'bin') : null, val(r,'slot') != null ? 'Slot ' + val(r,'slot') : null].filter(Boolean).join(' · ')],
     ['Size', dimsText(r)]
   ].map(([k, x]) => [k, x || '']);
   const po = val(r,'po'), order = val(r,'order'), tag = val(r,'tag');
@@ -2499,6 +2526,7 @@ function drawDetail(){
     ['Papers', esc(txt(v('papers')) || '')],
     ['Tag', v('tag') ? `<span class="dtag">${esc(v('tag'))}</span>` : null],
     ['Bin', v('bin') ? esc(v('bin')) : null],
+    ['Slot', v('slot') ? esc(v('slot')) : null],
     ['AC number', ac ? copyVal(ac) : null],
     ['PO', v('po') ? copyVal(v('po')) : null],
     ['Order', v('order') ? copyVal(v('order')) : null],
@@ -2508,7 +2536,7 @@ function drawDetail(){
     ['Length', v('length') != null ? esc(display(colFor('length'), v('length'))) : null]
   ].map(([k, x]) => [k, x || '']);
   // any other filled column goes under "All fields"
-  const used = new Set(['ev','cost','status','ref','dial','movement','case','size','bracelet','braceletcolor','gender','condition','box','papers','tag','bin','ac','po','order','brand','model','weight','height','width','length'].map(C).filter(Boolean).concat([S.imgCol, S.urlCol, 'SOURCE']));
+  const used = new Set(['ev','cost','status','ref','dial','movement','case','size','bracelet','braceletcolor','gender','condition','box','papers','tag','bin','slot','ac','po','order','brand','model','weight','height','width','length'].map(C).filter(Boolean).concat([S.imgCol, S.urlCol, 'SOURCE']));
   const idCol = S.cols.find(c => /^(ITEM_)?ID$|_UUID$|^UUID$/.test(c));
   if (idCol && r[idCol] != null) { fields.push(['Item ID', `<span class="mono2">${esc(r[idCol])}</span>`]); used.add(idCol); }
   const extra = S.cols.filter(c => !used.has(c) && r[c] != null && r[c] !== '');
